@@ -19,15 +19,14 @@
 		"enabled": true
 	},
 	/**
-	 * Local D1. Binding name must be DB.
-	 * Replace database_id with the id from `npx wrangler d1 create quizmaker`
-	 * before any remote use. Do not apply migrations with --remote unless asked.
+	 * D1 binding name is `quizmaker` (accessed as env.quizmaker).
+	 * Do not apply migrations with --remote unless asked.
 	 */
 	"d1_databases": [
 		{
-			"binding": "DB",
+			"binding": "quizmaker",
 			"database_name": "quizmaker",
-			"database_id": "local-quizmaker-dev",
+			"database_id": "537acbb6-fefe-4997-b7c0-9490b0537c31",
 			"migrations_dir": "migrations"
 		}
 	]
