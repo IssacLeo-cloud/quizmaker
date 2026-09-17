@@ -6,8 +6,10 @@ alwaysApply: false
 
 # Cloudflare D1
 
-D1 is Cloudflare's SQLite database. **This starter has no D1 database configured yet.**
-The conventions below apply once one is added, and describe how to add it.
+D1 is Cloudflare's SQLite database. This project binds it as `DB` in `wrangler.jsonc`.
+The `users` table is created by `migrations/0001_create_users.sql`. Apply migrations
+locally only (`--local`). The `database_id` is a local placeholder until someone runs
+`npx wrangler d1 create quizmaker` and replaces it for remote use.
 
 ## Adding D1 to the project
 

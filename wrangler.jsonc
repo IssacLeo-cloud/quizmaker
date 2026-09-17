@@ -4,7 +4,7 @@
  */
 {
 	"$schema": "node_modules/wrangler/config-schema.json",
-	"name": "aisprints-starter",
+	"name": "quizmaker",
 	"main": ".open-next/worker.js",
 	"compatibility_date": "2026-07-01",
 	"compatibility_flags": [
@@ -17,7 +17,20 @@
 	},
 	"observability": {
 		"enabled": true
-	}
+	},
+	/**
+	 * Local D1. Binding name must be DB.
+	 * Replace database_id with the id from `npx wrangler d1 create quizmaker`
+	 * before any remote use. Do not apply migrations with --remote unless asked.
+	 */
+	"d1_databases": [
+		{
+			"binding": "DB",
+			"database_name": "quizmaker",
+			"database_id": "local-quizmaker-dev",
+			"migrations_dir": "migrations"
+		}
+	]
 	/**
 	 * Smart Placement
 	 * Docs: https://developers.cloudflare.com/workers/configuration/smart-placement/#smart-placement

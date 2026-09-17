@@ -11,9 +11,10 @@ the problem, the primary user, and the current state. Two or three sentences.
 Keep it current. An out-of-date description here misleads every future conversation.
 -->
 
-This is an unmodified AISprints starter. No application features have been built yet.
-The technical PRD in `ai-workspace/` is the source of truth for what is being built and
-for the current phase of work.
+QuizMaker is a greenfield app for teachers who will later collaborate on a
+multiple-choice question bank. The source of truth is
+`ai-workspace/register-login-logout-prd.md`. Phase 1 added a local D1 `users`
+table; register / login / logout are not built yet.
 
 ## Stack
 
@@ -24,8 +25,10 @@ for the current phase of work.
 - **TypeScript** in strict mode
 - **Wrangler** for Cloudflare configuration, secrets, and deployment
 
-No database, authentication, testing framework, or AI SDK is installed yet. Do not
-write code that imports one without adding it first and telling the user.
+Vitest is installed for unit tests (`npm run test`). Cloudflare D1 is bound as `DB`
+for local use; apply migrations with `--local` only. Authentication APIs and an AI
+SDK are not installed yet. Do not write code that imports one without adding it first
+and telling the user.
 
 ## Layout
 
@@ -49,6 +52,8 @@ Import through the `@/` alias, which maps to `src/`.
 | `npm run preview` | Build and run on the local **Workers** runtime |
 | `npm run build` | Production build |
 | `npm run lint` | ESLint |
+| `npm run test` | Vitest once (`vitest run`) |
+| `npm run test:watch` | Vitest in watch mode |
 | `npm run deploy` | Build and deploy to Cloudflare |
 | `npm run cf-typegen` | Regenerate `cloudflare-env.d.ts` after changing bindings |
 
