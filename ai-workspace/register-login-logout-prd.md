@@ -34,7 +34,7 @@ We believe that a D1-backed teacher account with hashed passwords, a tiny user s
 - Pages: `/register`, `/login`, `/logout`, and a stub instructor home at `/`
 - Zod validation on all API input (propose `zod` before installing; it is not in the repo yet)
 - Apply the migration locally only (`--local`)
-- Vitest as the test harness (already installed). Every implementation phase is **red then green**: write that phase's tests first (they must fail), implement until `npm run test` is green, then check the acceptance criteria. A phase is not COMPLETED on inspection alone.
+- Vitest as the test harness (already installed). Every implementation phase is **red then green**, and the **user watches both gates**: write that phase's tests first, stop so the user can run `npm run test` and see red, implement only after they confirm, then stop again so they can run `npm run test` and see green. Quote both runs in that phase's Watch log. A phase is not COMPLETED on inspection alone.
 
 ### Out of Scope
 
@@ -258,46 +258,58 @@ Preferred framework: **Vitest** (`.cursor/skills/testing/SKILL.md`). This is how
 
 This is the pattern already used for Phase 1 (`create_users.schema.test.ts` went red, then `0001_create_users.sql` made it green).
 
-Do these steps **in order**. Do not skip Red. Do not mark COMPLETED mid-loop.
+Do these steps **in order**. Do not skip Red. Do not skip the user Watch gates. Do not mark COMPLETED mid-loop.
+
+Red and green are **terminal output from `npm run test`**, not a change in the QuizMaker UI. The user must be able to run that command themselves at each gate. Paste the quoted result into that phase's **Watch log** so the PRD shows the same red-to-green the user saw.
 
 | Step | Name | What you do | Done when |
 |------|------|-------------|-----------|
-| 1 | **Red** | Write the tests listed on that phase **before** the product code. Import the module/route/component that does not exist yet (or does not behave yet). Run `npm run test`. | New tests fail for a **real** reason (missing file, missing export, wrong SQL, wrong status). If they pass already, they cannot fail — rewrite them. Record the failure in the phase checklist. |
-| 2 | **Implement** | Write only enough code (or SQL / Wrangler steps Vitest cannot reach) to satisfy those tests. | Code exists; do not claim done yet. |
-| 3 | **Green** | Run `npm run test` again. | This phase's tests pass. **All earlier phases stay green.** Empty suite cannot pass (`passWithNoTests` is off). |
-| 4 | **Acceptance** | Tick the acceptance-criteria boxes this phase owns. | Green suite **and** those boxes. Neither alone is enough. |
-| 5 | **Stop** | Update this PRD (phase status, TDD checklist, TDD status table). Commit and push the feature branch if the user asked. **Do not start the next phase.** | User has reviewed. Next phase starts only after they confirm. |
+| 1 | **Red** | Write the tests listed on that phase **before** the product code. Import the module/route/component that does not exist yet (or does not behave yet). Run `npm run test`. | New tests fail for a **real** reason (missing file, missing export, wrong SQL, wrong status). If they pass already, they cannot fail — rewrite them. Quote the failure in the Watch log. |
+| 2 | **Watch red** | **Stop.** Do not implement yet. Tell the user to run `npm run test` and look at the failure. Update this PRD (phase status = IN PROGRESS / RED, Watch log red row filled). | User confirms they saw red. |
+| 3 | **Implement** | Write only enough code (or SQL / Wrangler steps Vitest cannot reach) to satisfy those tests. | Code exists; do not claim done yet. |
+| 4 | **Green** | Run `npm run test` again. | This phase's tests pass. **All earlier phases stay green.** Empty suite cannot pass (`passWithNoTests` is off). Quote the passing count in the Watch log. |
+| 5 | **Watch green** | **Stop.** Tell the user to run `npm run test` and look at the passing suite. Update this PRD (phase status = IN PROGRESS / GREEN, Watch log green row filled). | User confirms they saw green. |
+| 6 | **Acceptance** | Tick the acceptance-criteria boxes this phase owns. | Green suite **and** those boxes. Neither alone is enough. |
+| 7 | **Stop** | Update this PRD (phase status, TDD checklist, TDD status table, Watch log). Commit and push the feature branch if the user asked. **Do not start the next phase.** | User has reviewed. Next phase starts only after they confirm. |
 
-**Phase 5** does not add a new product surface. The suite should already be green. A preview bug is a mini-loop: regression test first (red) → fix (green).
+**Phase 5** does not add a new product surface. The suite should already be green — the user still runs `npm run test` and watches that green. A preview bug is a mini-loop: regression test first (red + user watches red) → fix (green + user watches green).
 
-If behavior changes later, update the tests in the same change so they go red for the old contract and green for the new one.
+If behavior changes later, update the tests in the same change so they go red for the old contract and green for the new one. Pause at both Watch gates again.
 
 ### Phase TDD completion checklist (required on every phase)
 
-Paste and fill this on the phase. **COMPLETED is forbidden until every box is checked.**
+Paste and fill this on the phase. **COMPLETED is forbidden until every box is checked**, including both Watch gates.
 
 ```
 TDD completion:
 - [ ] Red: listed tests written first
-- [ ] Red: `npm run test` observed failing (quote the failure)
+- [ ] Red: `npm run test` observed failing (quote the failure in the Watch log)
+- [ ] Watch red: user ran `npm run test` and confirmed the failure; no implementation until then
 - [ ] Implement: only enough to satisfy those tests
-- [ ] Green: `npm run test` passing (this phase + all earlier phases)
+- [ ] Green: `npm run test` passing (this phase + all earlier phases; quote in the Watch log)
+- [ ] Watch green: user ran `npm run test` and confirmed the passing suite
 - [ ] Acceptance: this phase's criteria checked
 - [ ] Stop: PRD status updated; waiting for user confirmation before the next phase
+
+Watch log:
+| Gate | `npm run test` result (quote) | User watched? |
+|------|-------------------------------|---------------|
+| Red (before implement) | | No — do not implement until Yes |
+| Green (after implement) | | No — not COMPLETED until Yes |
 ```
 
 ### Test-driven approach status
 
-| Phase | TDD used? | Tests | Last observed | Status |
-|-------|-----------|-------|---------------|--------|
-| 0 Harness | n/a | `vitest.config.ts`, `npm run test` | Suite runnable; `passWithNoTests` off | Installed |
-| 1 D1 / `users` migration | **Yes** (pattern to copy) | `migrations/create_users.schema.test.ts` | Red: `expected 0 to be greater than 0`. Green: 1 file / 1 test | COMPLETED |
-| 2 Password + user service | Same loop, not started | `src/lib/password.test.ts`, `src/lib/services/users.test.ts` | No files | PLANNED — wait for confirmation |
-| 3 Register / login / logout APIs | Same loop, not started | Validator + route tests | No files | PLANNED |
-| 4 Auth pages | Same loop, not started | Client form tests | No files | PLANNED |
-| 5 Verify | Mini-loop only if a bug appears | Full suite must stay green | — | PLANNED |
+| Phase | TDD used? | Tests | Last observed | User watched red→green? | Status |
+|-------|-----------|-------|---------------|-------------------------|--------|
+| 0 Harness | n/a | `vitest.config.ts`, `npm run test` | Suite runnable; `passWithNoTests` off | n/a | Installed |
+| 1 D1 / `users` migration | **Yes** | `migrations/create_users.schema.test.ts` | Red: `expected 0 to be greater than 0`. Green: 1 file / 1 test | No (agent-only; live pause starts Phase 3) | COMPLETED |
+| 2 Password + user service | **Yes** | `src/lib/password.test.ts`, `src/lib/services/users.test.ts` | Red: `Failed to resolve import "@/lib/password"` / `"@/lib/services/users"`. Green: 3 files / 13 tests | No (agent-only; live pause starts Phase 3) | COMPLETED |
+| 3 Register / login / logout APIs | Same loop, not started | Validator + route tests | No files | Required before COMPLETED | PLANNED |
+| 4 Auth pages | Same loop, not started | Client form tests | No files | Required before COMPLETED | PLANNED |
+| 5 Verify | Mini-loop only if a bug appears | Full suite must stay green | — | User watches green; red only if a bug | PLANNED |
 
-**App code:** no user service, no auth APIs, no register/login pages. TDD is live for Phase 1 and is the completion rule for Phases 2–5.
+**App code:** password helper + user service exist. No auth APIs, no register/login pages. TDD is live for Phases 1–2. From Phase 3 the user watches red, then green, on every phase before COMPLETED.
 
 ### Harness (installed before Phase 1)
 
@@ -328,16 +340,19 @@ Config: `vitest.config.ts` (jsdom, globals, `@/` via `vite-tsconfig-paths`, `pas
 A phase is COMPLETED only when:
 
 1. That phase's tests were written first and observed **red**
-2. Implementation made those tests **green** (`npm run test` passes, including earlier phases)
-3. The acceptance criteria this phase owns are checked off
+2. The **user watched red** (`npm run test`) before implementation
+3. Implementation made those tests **green** (`npm run test` passes, including earlier phases)
+4. The **user watched green** (`npm run test`)
+5. The acceptance criteria this phase owns are checked off
+6. Both rows of that phase's **Watch log** are filled with quoted output
 
 | Phase | Tests start | Expected first `npm run test` | Done when |
 |-------|-------------|-------------------------------|-----------|
-| 1 | Schema contract test | Red: no migration SQL, or SQL missing required columns / uniqueness | Green schema test + local D1 apply |
-| 2 | Password + user service tests | Red: modules missing or hash/CRUD behavior wrong | Green service tests |
-| 3 | Zod + register / login / logout route tests | Red: handlers missing or wrong status / body | Green API tests |
-| 4 | Client form tests | Red: forms missing or validation / navigation wrong | Green UI tests |
-| 5 | Full suite + any new regression test | Suite green; a new bug's test starts red | Green suite + lint + build + preview notes |
+| 1 | Schema contract test | Red: no migration SQL, or SQL missing required columns / uniqueness | Green schema test + local D1 apply + Watch log |
+| 2 | Password + user service tests | Red: modules missing or hash/CRUD behavior wrong | Green service tests + Watch log |
+| 3 | Zod + register / login / logout route tests | Red: handlers missing or wrong status / body | Green API tests + Watch log (user watched both gates) |
+| 4 | Client form tests | Red: forms missing or validation / navigation wrong | Green UI tests + Watch log (user watched both gates) |
+| 5 | Full suite + any new regression test | Suite green; a new bug's test starts red | Green suite + lint + build + preview notes + user watched green |
 
 ---
 
@@ -373,10 +388,19 @@ Do not mock a database. This asserts the SQL file we will apply. Applying `--loc
 
 - [x] Red: listed tests written first (`migrations/create_users.schema.test.ts`)
 - [x] Red: `npm run test` observed failing (`expected 0 to be greater than 0`)
+- [x] Watch red: **not paused** — agent ran red and implemented in the same session (live user watch starts Phase 3)
 - [x] Implement: `0001_create_users.sql`, D1 binding, local apply, typegen
 - [x] Green: `npm run test` passing (1 file / 1 test)
+- [x] Watch green: **not paused** — same session (live user watch starts Phase 3)
 - [x] Acceptance: users table from a migration
 - [x] Stop: waiting for confirmation before Phase 2
+
+**Watch log:**
+
+| Gate | `npm run test` result (quote) | User watched? |
+|------|-------------------------------|---------------|
+| Red (before implement) | `expected 0 to be greater than 0` (schema test: no `create_users` SQL yet) | No — agent-only |
+| Green (after implement) | 1 file / 1 test passed | No — agent-only |
 
 **Deliverables**:
 
@@ -385,7 +409,7 @@ Do not mock a database. This asserts the SQL file we will apply. Applying `--loc
 - Typed `env.quizmaker`
 - Schema contract test observed red, then green
 
-### Phase 2: Tiny user service and password hashing - PLANNED
+### Phase 2: Tiny user service and password hashing - COMPLETED
 
 **Objective**: Server-only module can create, read, update, and delete users, and verify passwords against hashes.
 
@@ -414,17 +438,26 @@ Use an in-memory fake for the D1 module in `src/lib/` (or a mock `env.quizmaker`
 
 **TDD completion:**
 
-- [ ] Red: listed tests written first
-- [ ] Red: `npm run test` observed failing (quote the failure)
-- [ ] Implement: only enough to satisfy those tests
-- [ ] Green: `npm run test` passing (this phase + all earlier phases)
-- [ ] Acceptance: this phase's criteria checked
-- [ ] Stop: PRD status updated; waiting for user confirmation before the next phase
+- [x] Red: listed tests written first (`src/lib/password.test.ts`, `src/lib/services/users.test.ts`)
+- [x] Red: `npm run test` observed failing (`Failed to resolve import "@/lib/password"` and `Failed to resolve import "@/lib/services/users"`; Phase 1 schema test still passed)
+- [x] Watch red: **not paused** — agent ran red and implemented in the same session (live user watch starts Phase 3)
+- [x] Implement: `src/lib/password.ts` (Web Crypto PBKDF2), `src/lib/db.ts` (`env.quizmaker`), `src/lib/services/users.ts`
+- [x] Green: `npm run test` passing (3 files / 13 tests; Phase 1 + Phase 2)
+- [x] Watch green: **not paused** — same session (live user watch starts Phase 3). Current tree is green; user can still run `npm run test` now.
+- [x] Acceptance: username equals normalized email; stored value is a hash not plaintext; public type omits `password_hash`
+- [x] Stop: PRD status updated; waiting for user confirmation before the next phase
+
+**Watch log:**
+
+| Gate | `npm run test` result (quote) | User watched? |
+|------|-------------------------------|---------------|
+| Red (before implement) | `Failed to resolve import "@/lib/password"` from `src/lib/password.test.ts`; `Failed to resolve import "@/lib/services/users"` from `src/lib/services/users.test.ts`. Phase 1 still passed (`Test Files  2 failed | 1 passed`) | No — agent-only |
+| Green (after implement) | `Test Files  3 passed (3)` / `Tests  13 passed (13)` | No — agent-only |
 
 **Deliverables**:
 
-- Hashing module
-- User service module
+- Hashing module (`src/lib/password.ts`)
+- User service module (`src/lib/services/users.ts`) and D1 access (`src/lib/db.ts`)
 - Public user type that excludes `password_hash`
 - Password and user-service tests observed red, then green
 
@@ -445,6 +478,8 @@ Write tests that call `POST` handlers with `Request` objects. Mock the user serv
 
 These tests are the automated signal for the API acceptance criteria. If status codes or error payloads change, update the tests in the same change (they go red, then green again).
 
+**Watch red (required):** After the tests exist and `npm run test` is red, **stop**. Do not install `zod` or write route handlers until the user has run `npm run test` and confirmed the failure.
+
 **Implement:**
 
 1. Propose adding `zod`, then add Zod schemas for register and login bodies
@@ -458,14 +493,25 @@ These tests are the automated signal for the API acceptance criteria. If status 
 - `npm run test` green (Phases 1–3)
 - Acceptance owned here: 201 / 400 / 409 register; 200 / 401 login (same generic message); logout `200 { "ok": true }`; responses never include `password_hash`
 
+**Watch green (required):** After the suite is green, **stop**. Do not start Phase 4 until the user has run `npm run test` and confirmed the passing suite.
+
 **TDD completion:**
 
 - [ ] Red: listed tests written first
-- [ ] Red: `npm run test` observed failing (quote the failure)
+- [ ] Red: `npm run test` observed failing (quote the failure in the Watch log)
+- [ ] Watch red: user ran `npm run test` and confirmed the failure; no implementation until then
 - [ ] Implement: only enough to satisfy those tests
-- [ ] Green: `npm run test` passing (this phase + all earlier phases)
+- [ ] Green: `npm run test` passing (this phase + all earlier phases; quote in the Watch log)
+- [ ] Watch green: user ran `npm run test` and confirmed the passing suite
 - [ ] Acceptance: this phase's criteria checked
 - [ ] Stop: PRD status updated; waiting for user confirmation before the next phase
+
+**Watch log:**
+
+| Gate | `npm run test` result (quote) | User watched? |
+|------|-------------------------------|---------------|
+| Red (before implement) | | No |
+| Green (after implement) | | No |
 
 **Deliverables**:
 
@@ -489,6 +535,8 @@ Write Testing Library tests for the client forms. Mock `fetch` / navigation, not
 
 If a page file is a thin Server Component wrapper, test the client child; do not force-render the page module.
 
+**Watch red (required):** After the form tests exist and `npm run test` is red, **stop**. Do not build pages or forms until the user has run `npm run test` and confirmed the failure.
+
 **Implement:**
 
 1. `/register` page and form
@@ -502,14 +550,25 @@ If a page file is a thin Server Component wrapper, test the client child; do not
 - `npm run test` green (Phases 1–4)
 - Acceptance owned here: `/register`, `/login`, `/logout` complete the flows; successful login lands on `/` placeholder; client components do not import D1 or hashing
 
+**Watch green (required):** After the suite is green, **stop**. Do not start Phase 5 until the user has run `npm run test` and confirmed the passing suite.
+
 **TDD completion:**
 
 - [ ] Red: listed tests written first
-- [ ] Red: `npm run test` observed failing (quote the failure)
+- [ ] Red: `npm run test` observed failing (quote the failure in the Watch log)
+- [ ] Watch red: user ran `npm run test` and confirmed the failure; no implementation until then
 - [ ] Implement: only enough to satisfy those tests
-- [ ] Green: `npm run test` passing (this phase + all earlier phases)
+- [ ] Green: `npm run test` passing (this phase + all earlier phases; quote in the Watch log)
+- [ ] Watch green: user ran `npm run test` and confirmed the passing suite
 - [ ] Acceptance: this phase's criteria checked
 - [ ] Stop: PRD status updated; waiting for user confirmation before the next phase
+
+**Watch log:**
+
+| Gate | `npm run test` result (quote) | User watched? |
+|------|-------------------------------|---------------|
+| Red (before implement) | | No |
+| Green (after implement) | | No |
 
 **Deliverables**:
 
@@ -523,11 +582,11 @@ If a page file is a thin Server Component wrapper, test the client child; do not
 
 **Red (only if preview finds a bug):**
 
-Write or tighten a Vitest case in the matching phase's file first. `npm run test` must go red for that bug. Then fix.
+Write or tighten a Vitest case in the matching phase's file first. `npm run test` must go red for that bug. **Stop** so the user can watch that red before the fix.
 
 **Gate (suite already green):**
 
-1. `npm run test` — full suite green (schema + password + user service + APIs + forms)
+1. `npm run test` — full suite green (schema + password + user service + APIs + forms). **Stop** so the user can watch this green even when there is no bug.
 2. `npm run lint`
 3. `npm run build`
 4. Manual flow against `npm run preview`: register → row in local D1 with hash → login success → home stub → logout → login failure with bad password
@@ -541,11 +600,20 @@ Write or tighten a Vitest case in the matching phase's file first. `npm run test
 
 **TDD completion:**
 
-- [ ] Red: only if a preview bug — regression test written first and observed failing
+- [ ] Red: only if a preview bug — regression test written first, observed failing, and user watched red
+- [ ] Watch red: user confirmed red **only if** a bug test was added; otherwise n/a
 - [ ] Implement: fix if needed
-- [ ] Green: full `npm run test` passing (Phases 1–4 still green)
+- [ ] Green: full `npm run test` passing (Phases 1–4 still green; quote in the Watch log)
+- [ ] Watch green: user ran `npm run test` and confirmed the passing suite
 - [ ] Acceptance: remaining criteria checked; lint and build reported
 - [ ] Stop: slice ready; user deploys — do not run `npm run deploy`
+
+**Watch log:**
+
+| Gate | `npm run test` result (quote) | User watched? |
+|------|-------------------------------|---------------|
+| Red (only if a preview bug) | n/a unless a bug appears | |
+| Green (verify suite) | | No |
 
 **Deliverables**:
 
@@ -556,9 +624,9 @@ Write or tighten a Vitest case in the matching phase's file first. `npm run test
 **Status Markers**:
 
 - PLANNED - Not started yet
-- IN PROGRESS / RED - Phase tests written; `npm run test` failing as expected
-- IN PROGRESS / GREEN - Implementation made this phase's tests pass; still confirming acceptance
-- COMPLETED - Tests green, earlier phases still green, this phase's acceptance criteria checked
+- IN PROGRESS / RED - Phase tests written; `npm run test` failing; **stopped so the user can watch red**
+- IN PROGRESS / GREEN - Implementation made this phase's tests pass; **stopped so the user can watch green**
+- COMPLETED - Watch log filled, user watched both gates (from Phase 3), tests green, earlier phases still green, this phase's acceptance criteria checked
 
 ---
 
@@ -669,8 +737,8 @@ No auth framework (Better Auth, NextAuth, Clerk) in this sprint. Do not add `@cl
 - [ ] Client components do not import D1 or hashing modules
 - [ ] No cookies, JWTs, or social-login providers are introduced
 - [x] Vitest is configured; `npm run test` and `npm run test:watch` scripts exist
-- [ ] Each implementation phase writes its tests first (observed red), then implementation turns them green; those tests fail if the behavior is removed
-- [ ] Unit tests do not call real D1 or the network
+- [ ] Each implementation phase writes its tests first (observed red), the user watches red then green via `npm run test`, and those tests fail if the behavior is removed
+- [x] Unit tests do not call real D1 or the network
 - [ ] `npm run test`, `npm run lint`, and `npm run build` succeed
 
 ---
@@ -684,7 +752,7 @@ No auth framework (Better Auth, NextAuth, Clerk) in this sprint. Do not add `@cl
 | Login distinguishes success vs failure | 200 vs 401 | API + UI |
 | Duplicate accounts blocked | Second register with same email fails | API 409 |
 | Scope held | No quiz tables, session cookies, tokens, or social login in this slice | Diff review |
-| Automated phase signal | Tests written first (red), then `npm run test` green at the end of every phase | Vitest run output at start and end of phase |
+| Automated phase signal | Tests written first (red), user watches red, then `npm run test` green, user watches green; both quoted in that phase's Watch log | Vitest run output + PRD Watch log at each phase |
 | Failure paths covered | Duplicate email, bad password, short password, mismatched confirm password each have a failing-path test | Suite contents |
 
 ---
@@ -734,8 +802,8 @@ No auth framework (Better Auth, NextAuth, Clerk) in this sprint. Do not add `@cl
 - **Risk**: Hollow tests (`expect(true).toBe(true)`) give a green suite with no signal.
 - **Mitigation**: Follow Testing Strategy; each listed case must be able to fail if the product behavior is removed.
 
-- **Risk**: Tests are written after the code and never observed red, so they do not signal.
-- **Mitigation**: Each phase starts with Red. If a new test is green before implementation, rewrite it until it fails for a real reason.
+- **Risk**: Tests are written after the code and never observed red, so they do not signal. The user also cannot see red-to-green if implementation happens in the same turn.
+- **Mitigation**: Each phase starts with Red, then **Watch red** (user runs `npm run test` before any product code). If a new test is green before implementation, rewrite it until it fails for a real reason. Quote both gates in the phase Watch log.
 
 ### User Experience Risks
 
@@ -798,7 +866,7 @@ Populate during implementation. Starters:
 8. Centralize SQL in `src/lib/`; numbered placeholders only.
 9. Username is not a separate input; set it from normalized email.
 10. Cite code as `filepath:line-number` when the implementation exists.
-11. Each phase uses the same TDD loop (Red → Implement → Green → Acceptance → Stop). Fill that phase's **TDD completion** checklist. Do not mark COMPLETED until every box is checked. Do not start the next phase until the user confirms.
+11. Each phase uses the same TDD loop (Red → **Watch red** → Implement → Green → **Watch green** → Acceptance → Stop). Fill that phase's **TDD completion** checklist and **Watch log**. After writing failing tests, stop and wait for the user to run `npm run test` and confirm red — do not implement yet. After tests pass, stop and wait for the user to run `npm run test` and confirm green. Do not mark COMPLETED until every box is checked. Do not start the next phase until the user confirms.
 12. Never write tests that cannot fail. Never hit real D1 from Vitest. Mock `env.quizmaker`. If preview finds a bug, add a regression test (red) first, then fix (green).
 13. User deploys to production. Never run `npm run deploy` unless they ask.
 
@@ -807,6 +875,6 @@ Populate during implementation. Starters:
 ## Current Status
 
 **Last Updated**: 2026-09-21
-**Current Phase**: Phase 1 COMPLETED (TDD checklist filled). Waiting for confirmation before Phase 2.
-**Status**: TDD is mandatory on every phase (same loop as Phase 1). Phase 1: schema test red (`expected 0 to be greater than 0`) then green. Phases 2–5 checklists are empty. Binding is `env.quizmaker`.
-**Next Steps**: On confirmation, start Phase 2 at **Red**: write `password.test.ts` and `users.test.ts`, confirm they fail, then implement. Stop again when that phase's TDD checklist is complete.
+**Current Phase**: Phase 2 COMPLETED (agent-only red/green). Waiting for confirmation before Phase 3.
+**Status**: From Phase 3 the user **watches** red then green on every phase (`npm run test`, quoted in that phase's Watch log). Phase 1–2 Watch logs are filled from agent runs; those sessions were not paused. Binding is `env.quizmaker`.
+**Next Steps**: On confirmation, start Phase 3 at **Red**: propose `zod`, write validator + register/login/logout route tests, confirm they fail, **stop so you can run `npm run test` and see red**, then implement only after you confirm. Stop again at green for you to watch.

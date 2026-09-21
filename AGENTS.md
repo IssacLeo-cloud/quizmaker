@@ -14,9 +14,12 @@ Keep it current. An out-of-date description here misleads every future conversat
 QuizMaker is a greenfield app for teachers who will later collaborate on a
 multiple-choice question bank. The source of truth is
 `ai-workspace/register-login-logout-prd.md`. Phase 1 added a D1 `users`
-table (binding `quizmaker`). Register / login / logout are not built yet.
-Implementation is test-driven: write failing Vitest tests first, then make them
-green, then wait for confirmation before the next phase.
+table (binding `quizmaker`). Phase 2 added PBKDF2 password hashing and a
+user service. Register / login / logout HTTP APIs and pages are not built yet.
+Implementation is test-driven: write failing Vitest tests first, stop so
+the user can run `npm run test` and see **red**, implement only after they
+confirm, then stop so they can see **green**. Quote both runs in that phase's
+Watch log in the PRD. Wait for confirmation before the next phase.
 
 ## Stack
 
@@ -74,10 +77,13 @@ anything runtime-sensitive with `npm run preview`.
   gitignored. When adding a variable, also add an empty placeholder to
   `.dev.vars.example`. Production values go in `wrangler secret put`.
 - **Verify before claiming completion.** A phase is done only when its TDD
-  checklist is complete: tests written first and observed red, implementation,
-  `npm run test` green (including earlier phases), acceptance boxes checked.
-  Then stop for confirmation. Also run `npm run lint` (and `npm run build` at
-  Phase 5) and report the actual result.
+  checklist is complete: tests written first and observed red, **user watched
+  red** (`npm run test`) before any implementation, implementation, `npm run
+  test` green (including earlier phases), **user watched green**, Watch log
+  quoted in the PRD, acceptance boxes checked. Then stop for confirmation.
+  Also run `npm run lint` (and `npm run build` at Phase 5) and report the
+  actual result. Do not implement while the user is still supposed to be
+  looking at a red suite.
 - **Say when you are unsure.** A flagged uncertainty is more useful than a confident
   guess that has to be unwound later.
 

@@ -115,15 +115,17 @@ CREATE TABLE table_name (
 
 ## Implementation Phases
 
-**Instructions**: Break work into phases. Each phase is **test-driven** (same loop as QuizMaker Phase 1):
+**Instructions**: Break work into phases. Each phase is **test-driven**. The user must **watch** red then green (`npm run test`) on every phase. Do not implement until they confirm red. Do not mark COMPLETED until they confirm green.
 
 1. **Red** — write that phase's tests first; `npm run test` must fail for a real reason
-2. **Implement** — only enough to satisfy those tests
-3. **Green** — `npm run test` passes; earlier phases stay green
-4. **Acceptance** — tick this phase's acceptance criteria
-5. **Stop** — do not start the next phase until the user confirms
+2. **Watch red** — **stop**. User runs `npm run test` and confirms the failure. Paste the quote into the Watch log. Do not implement yet.
+3. **Implement** — only enough to satisfy those tests
+4. **Green** — `npm run test` passes; earlier phases stay green
+5. **Watch green** — **stop**. User runs `npm run test` and confirms the passing suite. Paste the quote into the Watch log.
+6. **Acceptance** — tick this phase's acceptance criteria
+7. **Stop** — do not start the next phase until the user confirms
 
-A phase is not COMPLETED until its TDD completion checklist is fully checked.
+A phase is not COMPLETED until its TDD completion checklist **and Watch log** are fully checked.
 
 **Format**:
 ```
@@ -135,6 +137,8 @@ A phase is not COMPLETED until its TDD completion checklist is fully checked.
 - Test files and what they prove
 - Why they are red first
 
+**Watch red (required):** Stop. User runs `npm run test` and confirms the failure before any implementation.
+
 **Implement:**
 1. Task description
 2. Task description
@@ -143,25 +147,35 @@ A phase is not COMPLETED until its TDD completion checklist is fully checked.
 - `npm run test` green (this phase + earlier phases)
 - Acceptance this phase owns
 
+**Watch green (required):** Stop. User runs `npm run test` and confirms the passing suite.
+
 **TDD completion:**
 - [ ] Red: listed tests written first
-- [ ] Red: `npm run test` observed failing (quote the failure)
+- [ ] Red: `npm run test` observed failing (quote the failure in the Watch log)
+- [ ] Watch red: user ran `npm run test` and confirmed the failure; no implementation until then
 - [ ] Implement: only enough to satisfy those tests
-- [ ] Green: `npm run test` passing (this phase + all earlier phases)
+- [ ] Green: `npm run test` passing (this phase + all earlier phases; quote in the Watch log)
+- [ ] Watch green: user ran `npm run test` and confirmed the passing suite
 - [ ] Acceptance: this phase's criteria checked
 - [ ] Stop: waiting for user confirmation before the next phase
+
+**Watch log:**
+| Gate | `npm run test` result (quote) | User watched? |
+|------|-------------------------------|---------------|
+| Red (before implement) | | No |
+| Green (after implement) | | No |
 
 **Deliverables**:
 - File or component created
 - Feature implemented
-- Tests observed red, then green
+- Tests observed red, then green, with both gates watched by the user
 ```
 
 **Status Markers**:
 - PLANNED - Not started yet
-- IN PROGRESS / RED - Phase tests written; `npm run test` failing as expected
-- IN PROGRESS / GREEN - This phase's tests pass; still confirming acceptance
-- COMPLETED - TDD checklist complete; earlier phases still green
+- IN PROGRESS / RED - Phase tests written; `npm run test` failing; stopped so the user can watch red
+- IN PROGRESS / GREEN - This phase's tests pass; stopped so the user can watch green
+- COMPLETED - Watch log filled; user watched both gates; earlier phases still green
 
 ---
 
