@@ -115,11 +115,15 @@ CREATE TABLE table_name (
 
 ## Implementation Phases
 
-**Instructions**: Break work into phases. Each phase should have:
-- Clear objective
-- List of tasks
-- Status marker
-- Update status as work progresses
+**Instructions**: Break work into phases. Each phase is **test-driven** (same loop as QuizMaker Phase 1):
+
+1. **Red** — write that phase's tests first; `npm run test` must fail for a real reason
+2. **Implement** — only enough to satisfy those tests
+3. **Green** — `npm run test` passes; earlier phases stay green
+4. **Acceptance** — tick this phase's acceptance criteria
+5. **Stop** — do not start the next phase until the user confirms
+
+A phase is not COMPLETED until its TDD completion checklist is fully checked.
 
 **Format**:
 ```
@@ -127,21 +131,37 @@ CREATE TABLE table_name (
 
 **Objective**: [What this phase achieves]
 
-**Tasks**:
+**Red (write first, confirm fail):**
+- Test files and what they prove
+- Why they are red first
+
+**Implement:**
 1. Task description
 2. Task description
-3. Task description
+
+**Green / acceptance:**
+- `npm run test` green (this phase + earlier phases)
+- Acceptance this phase owns
+
+**TDD completion:**
+- [ ] Red: listed tests written first
+- [ ] Red: `npm run test` observed failing (quote the failure)
+- [ ] Implement: only enough to satisfy those tests
+- [ ] Green: `npm run test` passing (this phase + all earlier phases)
+- [ ] Acceptance: this phase's criteria checked
+- [ ] Stop: waiting for user confirmation before the next phase
 
 **Deliverables**:
 - File or component created
 - Feature implemented
-- Testing completed
+- Tests observed red, then green
 ```
 
 **Status Markers**:
-- COMPLETED - Phase is done
-- IN PROGRESS - Currently working on this
 - PLANNED - Not started yet
+- IN PROGRESS / RED - Phase tests written; `npm run test` failing as expected
+- IN PROGRESS / GREEN - This phase's tests pass; still confirming acceptance
+- COMPLETED - TDD checklist complete; earlier phases still green
 
 ---
 

@@ -1,5 +1,5 @@
 Date created: 2026-09-17
-Date last modified: 2026-09-17
+Date last modified: 2026-09-21
 
 # Register, Login, and Logout - Technical PRD
 
@@ -25,7 +25,7 @@ We believe that a D1-backed teacher account with hashed passwords, a tiny user s
 
 ### In Scope
 
-- Cloudflare D1 database, bound as `DB`, with a `users` migration
+- Cloudflare D1 database, bound as `quizmaker` (`env.quizmaker`), with a `users` migration
 - User row fields: personal name (`first_name`, `last_name`), `email`, and `password_hash`
 - Email as the login identifier. Store `username` equal to the normalized email so later features have a stable handle without a second form field
 - Hash the password on the server before insert. Never persist plaintext. Compare using the stored hash at login
@@ -64,7 +64,7 @@ We believe that a D1-backed teacher account with hashed passwords, a tiny user s
 
 ### Database Schema
 
-Database: Cloudflare D1 (SQLite). Binding name: `DB`. Suggested database name when created: `quizmaker`.
+Database: Cloudflare D1 (SQLite). Binding name: `quizmaker` (`env.quizmaker`). Database name: `quizmaker`.
 
 Add the `d1_databases` block to `wrangler.jsonc` after `npx wrangler d1 create quizmaker`, then run `npm run cf-typegen`.
 
@@ -252,29 +252,58 @@ Use existing shadcn/ui: `button`, `card`, `field`, `input`, `label`. Add compone
 
 ## Testing Strategy
 
-Preferred framework: **Vitest** with jsdom (`.cursor/skills/testing/SKILL.md`). The harness is installed. There are no product tests yet (`passWithNoTests` is on until Phase 1 writes the first real test).
+Preferred framework: **Vitest** (`.cursor/skills/testing/SKILL.md`). This is how **every** implementation phase is done. Phase 1 already followed it. Phases 2–5 must copy the same loop. A phase is not COMPLETED until the checklist on that phase is fully checked.
 
-Each phase is **test-first**. Tests at the beginning of a phase are supposed to be **red**. Implementation turns them **green**. That color change, plus the acceptance criteria, is the signal the phase is done.
+### The TDD loop (copy this for every phase)
 
-### Red → green cycle (every phase except the Phase 5 gate)
+This is the pattern already used for Phase 1 (`create_users.schema.test.ts` went red, then `0001_create_users.sql` made it green).
 
-Do this in order. Do not skip Red.
+Do these steps **in order**. Do not skip Red. Do not mark COMPLETED mid-loop.
 
-1. **Red — write tests first.** Add the files listed on that phase. Import the modules, routes, or components the phase will create. Assert the behaviors in the table. Run `npm run test`.
-2. **Confirm red.** The new tests must fail for a real reason: missing file, missing export, missing SQL, wrong status, wrong payload. If they pass before the feature exists, they cannot fail — rewrite them.
-3. **Implement** only enough to make those tests pass (plus the phase's D1 / Wrangler steps where Vitest cannot reach).
-4. **Green — re-run `npm run test`.** Prior phases must stay green. The new tests must now pass.
-5. **Acceptance.** Mark the acceptance-criteria checkboxes that this phase covers. A green suite with unmet acceptance criteria is not done; passing checkboxes with a red suite is not done.
+| Step | Name | What you do | Done when |
+|------|------|-------------|-----------|
+| 1 | **Red** | Write the tests listed on that phase **before** the product code. Import the module/route/component that does not exist yet (or does not behave yet). Run `npm run test`. | New tests fail for a **real** reason (missing file, missing export, wrong SQL, wrong status). If they pass already, they cannot fail — rewrite them. Record the failure in the phase checklist. |
+| 2 | **Implement** | Write only enough code (or SQL / Wrangler steps Vitest cannot reach) to satisfy those tests. | Code exists; do not claim done yet. |
+| 3 | **Green** | Run `npm run test` again. | This phase's tests pass. **All earlier phases stay green.** Empty suite cannot pass (`passWithNoTests` is off). |
+| 4 | **Acceptance** | Tick the acceptance-criteria boxes this phase owns. | Green suite **and** those boxes. Neither alone is enough. |
+| 5 | **Stop** | Update this PRD (phase status, TDD checklist, TDD status table). Commit and push the feature branch if the user asked. **Do not start the next phase.** | User has reviewed. Next phase starts only after they confirm. |
 
-If a test is still red after the intended implementation, the phase is not complete. If you change behavior later, update the tests in the same change so they go red for the old contract and green for the new one.
+**Phase 5** does not add a new product surface. The suite should already be green. A preview bug is a mini-loop: regression test first (red) → fix (green).
 
-**Phase 5** does not invent a new product surface. The suite should already be green. A preview bug starts a mini-cycle: write a regression test (red) → fix (green).
+If behavior changes later, update the tests in the same change so they go red for the old contract and green for the new one.
+
+### Phase TDD completion checklist (required on every phase)
+
+Paste and fill this on the phase. **COMPLETED is forbidden until every box is checked.**
+
+```
+TDD completion:
+- [ ] Red: listed tests written first
+- [ ] Red: `npm run test` observed failing (quote the failure)
+- [ ] Implement: only enough to satisfy those tests
+- [ ] Green: `npm run test` passing (this phase + all earlier phases)
+- [ ] Acceptance: this phase's criteria checked
+- [ ] Stop: PRD status updated; waiting for user confirmation before the next phase
+```
+
+### Test-driven approach status
+
+| Phase | TDD used? | Tests | Last observed | Status |
+|-------|-----------|-------|---------------|--------|
+| 0 Harness | n/a | `vitest.config.ts`, `npm run test` | Suite runnable; `passWithNoTests` off | Installed |
+| 1 D1 / `users` migration | **Yes** (pattern to copy) | `migrations/create_users.schema.test.ts` | Red: `expected 0 to be greater than 0`. Green: 1 file / 1 test | COMPLETED |
+| 2 Password + user service | Same loop, not started | `src/lib/password.test.ts`, `src/lib/services/users.test.ts` | No files | PLANNED — wait for confirmation |
+| 3 Register / login / logout APIs | Same loop, not started | Validator + route tests | No files | PLANNED |
+| 4 Auth pages | Same loop, not started | Client form tests | No files | PLANNED |
+| 5 Verify | Mini-loop only if a bug appears | Full suite must stay green | — | PLANNED |
+
+**App code:** no user service, no auth APIs, no register/login pages. TDD is live for Phase 1 and is the completion rule for Phases 2–5.
 
 ### Harness (installed before Phase 1)
 
 Installed as devDependencies: `vitest`, `@vitejs/plugin-react@5` (v5, not v6 — v6 needs Babel 8 and conflicts with shadcn's Babel 7), `@testing-library/react`, `@testing-library/user-event`, `jsdom`, `vite-tsconfig-paths`.
 
-Config: `vitest.config.ts` (jsdom, globals, `@/` via `vite-tsconfig-paths`, `passWithNoTests: true` until the first real test exists). Scripts: `"test": "vitest run"`, `"test:watch": "vitest"`. TypeScript: `vitest/globals` is listed in `tsconfig.json` `compilerOptions.types`. Turn `passWithNoTests` off as soon as Phase 1's schema test exists so an empty suite cannot look green.
+Config: `vitest.config.ts` (jsdom, globals, `@/` via `vite-tsconfig-paths`, `passWithNoTests` **off**). Scripts: `"test": "vitest run"`, `"test:watch": "vitest"`. TypeScript: `vitest/globals` is listed in `tsconfig.json` `compilerOptions.types`.
 
 ### Rules
 
@@ -331,7 +360,7 @@ Do not mock a database. This asserts the SQL file we will apply. Applying `--loc
 **Implement:**
 
 1. Propose and add D1: `npx wrangler d1 create quizmaker` (user must be able to run Wrangler locally)
-2. Add `d1_databases` binding `DB` to `wrangler.jsonc`
+2. Add `d1_databases` binding `quizmaker` to `wrangler.jsonc`
 3. Run `npm run cf-typegen`
 4. Create migration `create_users`, put the PRD `CREATE TABLE` in the generated file, apply with `--local` only
 
@@ -340,11 +369,20 @@ Do not mock a database. This asserts the SQL file we will apply. Applying `--loc
 - `npm run test` green (schema test passes; empty suite can no longer pass)
 - Acceptance: local D1 has a `users` table from a migration
 
+**TDD completion:**
+
+- [x] Red: listed tests written first (`migrations/create_users.schema.test.ts`)
+- [x] Red: `npm run test` observed failing (`expected 0 to be greater than 0`)
+- [x] Implement: `0001_create_users.sql`, D1 binding, local apply, typegen
+- [x] Green: `npm run test` passing (1 file / 1 test)
+- [x] Acceptance: users table from a migration
+- [x] Stop: waiting for confirmation before Phase 2
+
 **Deliverables**:
 
-- D1 binding in `wrangler.jsonc`
+- D1 binding in `wrangler.jsonc` (`quizmaker` / `env.quizmaker`)
 - `migrations/` SQL for `users`
-- Typed `env.DB`
+- Typed `env.quizmaker`
 - Schema contract test observed red, then green
 
 ### Phase 2: Tiny user service and password hashing - PLANNED
@@ -360,19 +398,28 @@ Write colocated tests that import the modules this phase will create. Mock D1 / 
 | `src/lib/password.test.ts` | Hash payload is not the plaintext password; same password verifies; wrong password does not; two hashes of the same password are not identical (salt); malformed payload fails closed | `password.ts` missing or hash/verify wrong |
 | `src/lib/services/users.test.ts` | `createUser` stores normalized lowercase email, sets `username` equal to that email, and persists a hash not the password; public reads omit `password_hash`; duplicate email is a conflict the API can map to 409; `getUserByEmail` / `getUserById` return the user or null; `updateUser` changes name fields and bumps `updated_at`; `deleteUser` removes the row; `verifyPassword` succeeds only for the correct password | `users.ts` missing or CRUD/verify wrong |
 
-Use an in-memory fake for the D1 module in `src/lib/` (or a mock `env.DB`) so create → read → update → delete can be asserted without Wrangler.
+Use an in-memory fake for the D1 module in `src/lib/` (or a mock `env.quizmaker`) so create → read → update → delete can be asserted without Wrangler.
 
 **Implement:**
 
 1. Password helper using Web Crypto PBKDF2 (salt + hash encoded in `password_hash`)
 2. `src/lib/services/users.ts` (or similar) with create / read / update / delete / verify
 3. Prepared statements with numbered placeholders (`?1`, `?2`)
-4. Access D1 via `getCloudflareContext()` then `env.DB`, centralized in `src/lib/`
+4. Access D1 via `getCloudflareContext()` then `env.quizmaker`, centralized in `src/lib/`
 
 **Green / acceptance:**
 
 - `npm run test` green (Phase 1 + Phase 2)
 - Acceptance owned here: username equals normalized email; stored value is a hash not plaintext; public type omits `password_hash`
+
+**TDD completion:**
+
+- [ ] Red: listed tests written first
+- [ ] Red: `npm run test` observed failing (quote the failure)
+- [ ] Implement: only enough to satisfy those tests
+- [ ] Green: `npm run test` passing (this phase + all earlier phases)
+- [ ] Acceptance: this phase's criteria checked
+- [ ] Stop: PRD status updated; waiting for user confirmation before the next phase
 
 **Deliverables**:
 
@@ -411,6 +458,15 @@ These tests are the automated signal for the API acceptance criteria. If status 
 - `npm run test` green (Phases 1–3)
 - Acceptance owned here: 201 / 400 / 409 register; 200 / 401 login (same generic message); logout `200 { "ok": true }`; responses never include `password_hash`
 
+**TDD completion:**
+
+- [ ] Red: listed tests written first
+- [ ] Red: `npm run test` observed failing (quote the failure)
+- [ ] Implement: only enough to satisfy those tests
+- [ ] Green: `npm run test` passing (this phase + all earlier phases)
+- [ ] Acceptance: this phase's criteria checked
+- [ ] Stop: PRD status updated; waiting for user confirmation before the next phase
+
 **Deliverables**:
 
 - Route handlers under `src/app/api/auth/`
@@ -446,6 +502,15 @@ If a page file is a thin Server Component wrapper, test the client child; do not
 - `npm run test` green (Phases 1–4)
 - Acceptance owned here: `/register`, `/login`, `/logout` complete the flows; successful login lands on `/` placeholder; client components do not import D1 or hashing
 
+**TDD completion:**
+
+- [ ] Red: listed tests written first
+- [ ] Red: `npm run test` observed failing (quote the failure)
+- [ ] Implement: only enough to satisfy those tests
+- [ ] Green: `npm run test` passing (this phase + all earlier phases)
+- [ ] Acceptance: this phase's criteria checked
+- [ ] Stop: PRD status updated; waiting for user confirmation before the next phase
+
 **Deliverables**:
 
 - App Router pages
@@ -474,6 +539,14 @@ Write or tighten a Vitest case in the matching phase's file first. `npm run test
 - Remaining acceptance criteria checked off
 - Any preview bug has a regression test that went red, then green
 
+**TDD completion:**
+
+- [ ] Red: only if a preview bug — regression test written first and observed failing
+- [ ] Implement: fix if needed
+- [ ] Green: full `npm run test` passing (Phases 1–4 still green)
+- [ ] Acceptance: remaining criteria checked; lint and build reported
+- [ ] Stop: slice ready; user deploys — do not run `npm run deploy`
+
 **Deliverables**:
 
 - Reported `npm run test` / `lint` / `build` results
@@ -493,10 +566,10 @@ Write or tighten a Vitest case in the matching phase's file first. `npm run test
 
 ### Key Files (planned)
 
-- `wrangler.jsonc` - D1 `DB` binding
-- `migrations/0001_create_users.sql` - (name will match wrangler output) schema
+- `wrangler.jsonc` - D1 `quizmaker` binding (`env.quizmaker`)
+- `migrations/0001_create_users.sql` - schema
 - `src/lib/password.ts` - PBKDF2 hash and verify
-- `src/lib/db.ts` - obtain `env.DB` from `getCloudflareContext()`
+- `src/lib/db.ts` - obtain `env.quizmaker` from `getCloudflareContext()`
 - `src/lib/services/users.ts` - tiny user service
 - `src/lib/validators/auth.ts` - Zod schemas
 - `src/app/api/auth/register/route.ts`
@@ -526,7 +599,7 @@ import { getCloudflareContext } from "@opennextjs/cloudflare";
 
 export async function getDb() {
   const { env } = await getCloudflareContext();
-  return env.DB;
+  return env.quizmaker;
 }
 ```
 
@@ -543,7 +616,7 @@ export async function getDb() {
 ```typescript
 vi.mock("@opennextjs/cloudflare", () => ({
   getCloudflareContext: vi.fn(async () => ({
-    env: { DB: mockDb },
+    env: { quizmaker: mockDb },
   })),
 }));
 ```
@@ -552,7 +625,7 @@ Keep D1 behind `src/lib/` so tests mock that module. Reset with `vi.clearAllMock
 
 ### Important Notes
 
-- `npm run dev` runs on Node and may not expose D1 the same way as Workers. Prefer `npm run preview` for anything that touches `env.DB`.
+- `npm run dev` runs on Node and may not expose D1 the same way as Workers. Prefer `npm run preview` for anything that touches `env.quizmaker`.
 - Cloud agents cannot run authenticated Wrangler or `d1 create`. Creating the database may need to happen on the user's machine.
 - Ask before adding remaining dependencies. Zod is required by project Next.js rules for input validation — propose it before install. Vitest is already installed.
 - Do not edit `cloudflare-env.d.ts` by hand; regenerate with `npm run cf-typegen`.
@@ -626,14 +699,14 @@ No auth framework (Better Auth, NextAuth, Clerk) in this sprint. Do not add `@cl
 
 ### Internal Dependencies
 
-- `@opennextjs/cloudflare` `getCloudflareContext()` — `env.DB`
+- `@opennextjs/cloudflare` `getCloudflareContext()` — `env.quizmaker`
 - shadcn/ui form primitives already in the repo (`button`, `card`, `field`, `input`, `label`)
 - Zod — to be added after user agreement (Phase 3)
 - Vitest harness — installed (`npm run test`, `npm run test:watch`)
 
 ### Environment / config
 
-- `wrangler.jsonc` `d1_databases` binding `DB`
+- `wrangler.jsonc` `d1_databases` binding `quizmaker`
 - No new `.dev.vars` secrets required for this slice
 - `.dev.vars.example` unchanged unless a secret is introduced later (sessions)
 
@@ -683,9 +756,9 @@ Populate during implementation. Starters:
 
 ### D1 binding missing on preview
 
-**Problem**: `env.DB` is undefined.
+**Problem**: `env.quizmaker` is undefined.
 **Cause**: Binding not in `wrangler.jsonc`, or types not regenerated.
-**Solution**: Add `d1_databases` with binding `DB`; run `npm run cf-typegen`; restart preview.
+**Solution**: Add `d1_databases` with binding `quizmaker`; run `npm run cf-typegen`; restart preview.
 
 ### Unique email insert fails as 500
 
@@ -709,7 +782,7 @@ Populate during implementation. Starters:
 
 **Problem**: User-service tests fail before any assertion.
 **Cause**: jsdom has no Cloudflare context.
-**Solution**: `vi.mock("@opennextjs/cloudflare")` and inject a fake `env.DB`; keep all D1 access behind `src/lib/`.
+**Solution**: `vi.mock("@opennextjs/cloudflare")` and inject a fake `env.quizmaker`; keep all D1 access behind `src/lib/`.
 
 ---
 
@@ -725,14 +798,15 @@ Populate during implementation. Starters:
 8. Centralize SQL in `src/lib/`; numbered placeholders only.
 9. Username is not a separate input; set it from normalized email.
 10. Cite code as `filepath:line-number` when the implementation exists.
-11. Each phase is red then green. Write the tests listed on that phase **first**. Run `npm run test` and confirm they fail. Implement until they pass. Do not mark COMPLETED until the suite is green **and** that phase's acceptance criteria are checked. Earlier phases must stay green.
-12. Never write tests that cannot fail. Never hit real D1 from Vitest. If preview finds a bug, add a regression test (red) first, then fix (green).
+11. Each phase uses the same TDD loop (Red → Implement → Green → Acceptance → Stop). Fill that phase's **TDD completion** checklist. Do not mark COMPLETED until every box is checked. Do not start the next phase until the user confirms.
+12. Never write tests that cannot fail. Never hit real D1 from Vitest. Mock `env.quizmaker`. If preview finds a bug, add a regression test (red) first, then fix (green).
+13. User deploys to production. Never run `npm run deploy` unless they ask.
 
 ---
 
 ## Current Status
 
-**Last Updated**: 2026-09-17
-**Current Phase**: Phase 1 complete — waiting for review before Phase 2
-**Status**: Phase 1 COMPLETED (red then green). Local D1 `users` table applied with `--local`. Remote `npx wrangler d1 create quizmaker` was not run; `database_id` is the local placeholder `local-quizmaker-dev`.
-**Next Steps**: Review Phase 1. On approval, start Phase 2 red-first (password + user service tests). Propose adding `zod` before Phase 3. To use a real Cloudflare D1 later, run `npx wrangler d1 create quizmaker` and replace `database_id` in `wrangler.jsonc`.
+**Last Updated**: 2026-09-21
+**Current Phase**: Phase 1 COMPLETED (TDD checklist filled). Waiting for confirmation before Phase 2.
+**Status**: TDD is mandatory on every phase (same loop as Phase 1). Phase 1: schema test red (`expected 0 to be greater than 0`) then green. Phases 2–5 checklists are empty. Binding is `env.quizmaker`.
+**Next Steps**: On confirmation, start Phase 2 at **Red**: write `password.test.ts` and `users.test.ts`, confirm they fail, then implement. Stop again when that phase's TDD checklist is complete.

@@ -13,8 +13,10 @@ Keep it current. An out-of-date description here misleads every future conversat
 
 QuizMaker is a greenfield app for teachers who will later collaborate on a
 multiple-choice question bank. The source of truth is
-`ai-workspace/register-login-logout-prd.md`. Phase 1 added a local D1 `users`
-table; register / login / logout are not built yet.
+`ai-workspace/register-login-logout-prd.md`. Phase 1 added a D1 `users`
+table (binding `quizmaker`). Register / login / logout are not built yet.
+Implementation is test-driven: write failing Vitest tests first, then make them
+green, then wait for confirmation before the next phase.
 
 ## Stack
 
@@ -25,10 +27,10 @@ table; register / login / logout are not built yet.
 - **TypeScript** in strict mode
 - **Wrangler** for Cloudflare configuration, secrets, and deployment
 
-Vitest is installed for unit tests (`npm run test`). Cloudflare D1 is bound as `DB`
-for local use; apply migrations with `--local` only. Authentication APIs and an AI
-SDK are not installed yet. Do not write code that imports one without adding it first
-and telling the user.
+Vitest is installed for unit tests (`npm run test`). Cloudflare D1 is bound as
+`quizmaker` (`env.quizmaker`); apply migrations with `--local` only unless the
+user asks otherwise. Authentication APIs and an AI SDK are not installed yet. Do
+not write code that imports one without adding it first and telling the user.
 
 ## Layout
 
@@ -71,8 +73,11 @@ anything runtime-sensitive with `npm run preview`.
 - **Keep secrets out of the repo.** Local values belong in `.dev.vars`, which is
   gitignored. When adding a variable, also add an empty placeholder to
   `.dev.vars.example`. Production values go in `wrangler secret put`.
-- **Verify before claiming completion.** Run `npm run lint` and `npm run build` and
-  report the actual result. Do not describe work as done based on inspection alone.
+- **Verify before claiming completion.** A phase is done only when its TDD
+  checklist is complete: tests written first and observed red, implementation,
+  `npm run test` green (including earlier phases), acceptance boxes checked.
+  Then stop for confirmation. Also run `npm run lint` (and `npm run build` at
+  Phase 5) and report the actual result.
 - **Say when you are unsure.** A flagged uncertainty is more useful than a confident
   guess that has to be unwound later.
 

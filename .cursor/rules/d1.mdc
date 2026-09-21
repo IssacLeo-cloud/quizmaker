@@ -6,16 +6,16 @@ alwaysApply: false
 
 # Cloudflare D1
 
-D1 is Cloudflare's SQLite database. This project binds it as `DB` in `wrangler.jsonc`.
-The `users` table is created by `migrations/0001_create_users.sql`. Apply migrations
-locally only (`--local`). The `database_id` is a local placeholder until someone runs
-`npx wrangler d1 create quizmaker` and replaces it for remote use.
+D1 is Cloudflare's SQLite database. This project binds it as `quizmaker` in
+`wrangler.jsonc` (`env.quizmaker`). The `users` table is created by
+`migrations/0001_create_users.sql`. Apply migrations locally only (`--local`)
+unless the user asks otherwise.
 
 ## Adding D1 to the project
 
 1. Create the database: `npx wrangler d1 create <name>`
-2. Add the returned `d1_databases` block to `wrangler.jsonc` with binding `DB`.
-3. Run `npm run cf-typegen` so `env.DB` becomes typed.
+2. Add the returned `d1_databases` block to `wrangler.jsonc`. This app uses binding `quizmaker`.
+3. Run `npm run cf-typegen` so `env.quizmaker` becomes typed.
 
 ## Access
 
