@@ -15,8 +15,9 @@ QuizMaker is a greenfield app for teachers who will later collaborate on a
 multiple-choice question bank. The source of truth is
 `ai-workspace/register-login-logout-prd.md`. Phase 1 added a D1 `users`
 table (binding `quizmaker`). Phase 2 added PBKDF2 password hashing and a
-user service. Phase 3 added register / login / logout HTTP APIs. Auth pages
-are not built yet.
+user service. Phase 3 added register / login / logout HTTP APIs. Phase 4 added
+auth pages (shadcn forms): `/` redirects to login; instructor home is `/home`
+with logout only. Phase 4 is complete; slice verify (Phase 5) is not done yet.
 Implementation is test-driven: write failing Vitest tests first, stop so
 the user can run `npm run test` and see **red**, implement only after they
 confirm, then stop so they can see **green**. Quote both runs in that phase's
