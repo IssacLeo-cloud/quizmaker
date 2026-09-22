@@ -32,7 +32,7 @@ We believe that a D1-backed teacher account with hashed passwords, a tiny user s
 - Tiny user service in `src/lib/services/` with create, read, update, delete, and password verify
 - HTTP APIs: `POST /api/auth/register`, `POST /api/auth/login`, `POST /api/auth/logout`
 - Pages: `/register`, `/login`, `/logout`, and a stub instructor home at `/`
-- Zod validation on all API input (propose `zod` before installing; it is not in the repo yet)
+- Zod validation on all API input (`zod` is installed)
 - Apply the migration locally only (`--local`)
 - Vitest as the test harness (already installed). Every implementation phase is **red then green**, and the **user watches both gates**: write that phase's tests first, stop so the user can run `npm run test` and see red, implement only after they confirm, then stop again so they can run `npm run test` and see green. Quote both runs in that phase's Watch log. A phase is not COMPLETED on inspection alone.
 
@@ -305,11 +305,11 @@ Watch log:
 | 0 Harness | n/a | `vitest.config.ts`, `npm run test` | Suite runnable; `passWithNoTests` off | n/a | Installed |
 | 1 D1 / `users` migration | **Yes** | `migrations/create_users.schema.test.ts` | Red: `expected 0 to be greater than 0`. Green: 1 file / 1 test | No (agent-only; live pause starts Phase 3) | COMPLETED |
 | 2 Password + user service | **Yes** | `src/lib/password.test.ts`, `src/lib/services/users.test.ts` | Red: `Failed to resolve import "@/lib/password"` / `"@/lib/services/users"`. Green: 3 files / 13 tests | No (agent-only; live pause starts Phase 3) | COMPLETED |
-| 3 Register / login / logout APIs | Same loop, not started | Validator + route tests | No files | Required before COMPLETED | PLANNED |
+| 3 Register / login / logout APIs | **Yes** | `src/lib/validators/auth.test.ts`, `src/app/api/auth/*/route.test.ts` | Red: missing validator and `route` modules. Green: 7 files / 27 tests | Yes (user confirmed Phase 3 looks good) | COMPLETED |
 | 4 Auth pages | Same loop, not started | Client form tests | No files | Required before COMPLETED | PLANNED |
 | 5 Verify | Mini-loop only if a bug appears | Full suite must stay green | — | User watches green; red only if a bug | PLANNED |
 
-**App code:** password helper + user service exist. No auth APIs, no register/login pages. TDD is live for Phases 1–2. From Phase 3 the user watches red, then green, on every phase before COMPLETED.
+**App code:** password helper, user service, and register / login / logout APIs exist. No auth pages yet.
 
 ### Harness (installed before Phase 1)
 
@@ -461,7 +461,7 @@ Use an in-memory fake for the D1 module in `src/lib/` (or a mock `env.quizmaker`
 - Public user type that excludes `password_hash`
 - Password and user-service tests observed red, then green
 
-### Phase 3: Register, login, logout APIs - PLANNED
+### Phase 3: Register, login, logout APIs - COMPLETED
 
 **Objective**: HTTP surface for the three auth operations.
 
@@ -497,21 +497,21 @@ These tests are the automated signal for the API acceptance criteria. If status 
 
 **TDD completion:**
 
-- [ ] Red: listed tests written first
-- [ ] Red: `npm run test` observed failing (quote the failure in the Watch log)
-- [ ] Watch red: user ran `npm run test` and confirmed the failure; no implementation until then
-- [ ] Implement: only enough to satisfy those tests
-- [ ] Green: `npm run test` passing (this phase + all earlier phases; quote in the Watch log)
-- [ ] Watch green: user ran `npm run test` and confirmed the passing suite
-- [ ] Acceptance: this phase's criteria checked
-- [ ] Stop: PRD status updated; waiting for user confirmation before the next phase
+- [x] Red: listed tests written first (`src/lib/validators/auth.test.ts`, `src/app/api/auth/register/route.test.ts`, `src/app/api/auth/login/route.test.ts`, `src/app/api/auth/logout/route.test.ts`)
+- [x] Red: `npm run test` observed failing (quote in the Watch log)
+- [x] Watch red: user confirmed and said proceed
+- [x] Implement: `zod`, `src/lib/validators/auth.ts`, `POST /api/auth/register`, `POST /api/auth/login`, `POST /api/auth/logout`
+- [x] Green: `npm run test` passing (7 files / 27 tests; quote in the Watch log)
+- [x] Watch green: user confirmed Phase 3 looks good
+- [x] Acceptance: 201 / 400 / 409 register; 200 / 401 login (same generic message); logout `200 { "ok": true }`; responses never include `password_hash`
+- [x] Stop: PRD status updated; waiting for user confirmation before Phase 4
 
 **Watch log:**
 
 | Gate | `npm run test` result (quote) | User watched? |
 |------|-------------------------------|---------------|
-| Red (before implement) | | No |
-| Green (after implement) | | No |
+| Red (before implement) | `Failed to resolve import "@/lib/validators/auth"`; `Failed to resolve import "@/app/api/auth/register/route"`; same for `login/route` and `logout/route`. `Test Files  4 failed | 3 passed (7)` / `Tests  13 passed (13)` (Phase 1–2 still green) | Yes — user said proceed |
+| Green (after implement) | `Test Files  7 passed (7)` / `Tests  27 passed (27)` | Yes — user confirmed Phase 3 looks good |
 
 **Deliverables**:
 
@@ -712,11 +712,17 @@ Keep D1 behind `src/lib/` so tests mock that module. Reset with `vi.clearAllMock
 | `jsdom` | DOM environment for component tests |
 | `vite-tsconfig-paths` | Resolve the `@/` alias in tests |
 
-### Proposed dependencies (ask before install)
+### Installed runtime dependencies (this slice)
 
 | Package | Why |
 |---------|-----|
 | `zod` | Validate register / login bodies in route handlers, per project Next.js rules |
+
+### Proposed dependencies (ask before install)
+
+| Package | Why |
+|---------|-----|
+| — | None remaining for this slice |
 
 No auth framework (Better Auth, NextAuth, Clerk) in this sprint. Do not add `@cloudflare/vitest-pool-workers` unless asked.
 
@@ -725,13 +731,13 @@ No auth framework (Better Auth, NextAuth, Clerk) in this sprint. Do not add `@cl
 ## Acceptance Criteria
 
 - [x] Local D1 has a `users` table from a migration (not ad-hoc SQL)
-- [ ] Register stores `username` equal to normalized `email`
-- [ ] Register stores `password_hash` that is not the plaintext password
-- [ ] Register with a duplicate email returns 409 and does not insert a second row
-- [ ] Register with a short password or invalid email returns 400
-- [ ] Login with correct password returns 200 and the public user object (no `password_hash`)
-- [ ] Login with wrong password or unknown email returns 401 with the same generic message
-- [ ] Logout returns 200 `{ "ok": true }`
+- [x] Register stores `username` equal to normalized `email`
+- [x] Register stores `password_hash` that is not the plaintext password
+- [x] Register with a duplicate email returns 409 and does not insert a second row
+- [x] Register with a short password or invalid email returns 400
+- [x] Login with correct password returns 200 and the public user object (no `password_hash`)
+- [x] Login with wrong password or unknown email returns 401 with the same generic message
+- [x] Logout returns 200 `{ "ok": true }`
 - [ ] `/register`, `/login`, and `/logout` render and complete the flows above
 - [ ] After successful login the instructor is taken to `/` (placeholder, no quiz editor)
 - [ ] Client components do not import D1 or hashing modules
@@ -769,7 +775,7 @@ No auth framework (Better Auth, NextAuth, Clerk) in this sprint. Do not add `@cl
 
 - `@opennextjs/cloudflare` `getCloudflareContext()` — `env.quizmaker`
 - shadcn/ui form primitives already in the repo (`button`, `card`, `field`, `input`, `label`)
-- Zod — to be added after user agreement (Phase 3)
+- Zod — installed in Phase 3 for register / login body validation
 - Vitest harness — installed (`npm run test`, `npm run test:watch`)
 
 ### Environment / config
@@ -859,7 +865,7 @@ Populate during implementation. Starters:
 1. Start with Overview, Hypothesis, and Scope in this file. Do not build quiz authoring, social login, tokens, cookies, or sessions.
 2. Use Scope (In / Out / Cut) as the boundary. Frontend password hashing is later, not now.
 3. Do not add HTTP update / delete user routes in this sprint. CRUD on the user service is enough.
-4. Ask before adding `zod` or any other new package. Vitest is already installed; do not add `@cloudflare/vitest-pool-workers` unless asked.
+4. `zod` is installed. Ask before adding any other new package. Do not add `@cloudflare/vitest-pool-workers` unless asked.
 5. Apply D1 migrations locally only. Never `--remote` unless the user asks.
 6. Never run `npm run deploy` unless the user asks.
 7. Update phase status, acceptance checkboxes, test file lists, and this troubleshooting section as work happens.
@@ -874,7 +880,7 @@ Populate during implementation. Starters:
 
 ## Current Status
 
-**Last Updated**: 2026-09-21
-**Current Phase**: Phase 2 COMPLETED (agent-only red/green). Waiting for confirmation before Phase 3.
-**Status**: From Phase 3 the user **watches** red then green on every phase (`npm run test`, quoted in that phase's Watch log). Phase 1–2 Watch logs are filled from agent runs; those sessions were not paused. Binding is `env.quizmaker`.
-**Next Steps**: On confirmation, start Phase 3 at **Red**: propose `zod`, write validator + register/login/logout route tests, confirm they fail, **stop so you can run `npm run test` and see red**, then implement only after you confirm. Stop again at green for you to watch.
+**Last Updated**: 2026-09-22
+**Current Phase**: Phase 3 COMPLETED. Waiting for confirmation before Phase 4.
+**Status**: Register / login / logout HTTP APIs are in. `zod` is installed. `npm run test` green: 7 files / 27 tests. User confirmed Phase 3 looks good. Binding is `env.quizmaker`.
+**Next Steps**: On confirmation, start Phase 4 at **Red**: write client form tests, stop so the user can watch red, then implement pages only after they confirm.

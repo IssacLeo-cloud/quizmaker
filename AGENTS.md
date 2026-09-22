@@ -15,7 +15,8 @@ QuizMaker is a greenfield app for teachers who will later collaborate on a
 multiple-choice question bank. The source of truth is
 `ai-workspace/register-login-logout-prd.md`. Phase 1 added a D1 `users`
 table (binding `quizmaker`). Phase 2 added PBKDF2 password hashing and a
-user service. Register / login / logout HTTP APIs and pages are not built yet.
+user service. Phase 3 added register / login / logout HTTP APIs. Auth pages
+are not built yet.
 Implementation is test-driven: write failing Vitest tests first, stop so
 the user can run `npm run test` and see **red**, implement only after they
 confirm, then stop so they can see **green**. Quote both runs in that phase's
@@ -32,8 +33,9 @@ Watch log in the PRD. Wait for confirmation before the next phase.
 
 Vitest is installed for unit tests (`npm run test`). Cloudflare D1 is bound as
 `quizmaker` (`env.quizmaker`); apply migrations with `--local` only unless the
-user asks otherwise. Authentication APIs and an AI SDK are not installed yet. Do
-not write code that imports one without adding it first and telling the user.
+user asks otherwise. Zod is installed for auth API validation. An AI SDK is not
+installed yet. Do not write code that imports one without adding it first and
+telling the user.
 
 ## Layout
 
