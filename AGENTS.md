@@ -17,7 +17,8 @@ multiple-choice question bank. The source of truth is
 table (binding `quizmaker`). Phase 2 added PBKDF2 password hashing and a
 user service. Phase 3 added register / login / logout HTTP APIs. Phase 4 added
 auth pages (shadcn forms): `/` redirects to login; instructor home is `/home`
-with logout only. Phase 4 is complete; slice verify (Phase 5) is not done yet.
+with Log out top-right. Phase 5 verify (test, lint, build, Workers preview)
+is complete. This identity slice is done; quiz authoring is not in this sprint.
 Implementation is test-driven: write failing Vitest tests first, stop so
 the user can run `npm run test` and see **red**, implement only after they
 confirm, then stop so they can see **green**. Quote both runs in that phase's

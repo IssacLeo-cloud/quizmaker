@@ -257,9 +257,9 @@ Logout is not in those blocks. Add `src/components/auth/logout-panel.tsx` plus `
 #### Instructor home placeholder (`/home`)
 
 - After a successful login, this is the landing page (`src/app/home/page.tsx:3-4`)
-- Copy should make clear this is the instructor home and that quiz / MCQ making is next (`src/components/home/instructor-home.tsx:6-10`)
+- Copy should make clear this is the instructor home and that quiz / MCQ making is next (`src/components/home/instructor-home.tsx:10-14`)
 - No quiz editor, no quiz list backed by a table
-- Link to **logout** (`/logout`) only (`src/components/home/instructor-home.tsx:12`). Do **not** show Login or Register on this page
+- Link to **logout** (`/logout`) only, top-right of the page (`src/components/home/instructor-home.tsx:6-8`). Do **not** show Login or Register on this page
 - Because there is no session, a refresh cannot prove who is signed in; do not fake a protected dashboard
 
 **Client vs server:** forms need `'use client'` only at the form component. Database and hashing stay in `src/lib/` and must never be imported into client components. Frontend hashing of the password before submit is out of scope.
@@ -323,9 +323,9 @@ Watch log:
 | 2 Password + user service | **Yes** | `src/lib/password.test.ts`, `src/lib/services/users.test.ts` | Red: `Failed to resolve import "@/lib/password"` / `"@/lib/services/users"`. Green: 3 files / 13 tests | No (agent-only; live pause starts Phase 3) | COMPLETED |
 | 3 Register / login / logout APIs | **Yes** | `src/lib/validators/auth.test.ts`, `src/app/api/auth/*/route.test.ts` | Red: missing validator and `route` modules. Green: 7 files / 27 tests | Yes (user confirmed Phase 3 looks good) | COMPLETED |
 | 4 Auth pages | **Yes** | `src/components/auth/*.test.tsx`, `src/components/home/instructor-home.test.tsx` | Red: missing form/home modules. Green: 11 files / 36 tests | Yes (user verified Phase 4 in the browser: login, register, login, logout) | COMPLETED |
-| 5 Verify | Mini-loop only if a bug appears | Full suite must stay green | — | User watches green; red only if a bug | PLANNED |
+| 5 Verify | Mini-loop only if a bug appears | Full suite must stay green | Green: 11 files / 36 tests; lint exit 0; `next build` ok; preview on :8787 | Yes (user confirmed Phase 5 looks good) | COMPLETED |
 
-**App code:** password helper, user service, auth APIs, and shadcn login/register/logout/home pages exist. Phase 4 is COMPLETED. Do not start Phase 5 until the user asks.
+**App code:** password helper, user service, auth APIs, and shadcn login/register/logout/home pages exist. Phases 1–5 are COMPLETED. This slice is done.
 
 ### Harness (installed before Phase 1)
 
@@ -548,7 +548,7 @@ Write Testing Library tests for the client forms. Mock `fetch` / navigation, not
 | `src/components/auth/register-form.test.tsx` | Renders first name, last name, email, password, confirm password; client validation blocks submit when passwords do not match or password is too short; successful submit POSTs JSON **without** confirm password; on 201, navigates toward `/login` | Form missing or validation / POST shape wrong |
 | `src/components/auth/login-form.test.tsx` | Submits email and password to `/api/auth/login`; on 200, navigates to `/home`; on 401, shows the generic invalid-credentials message | Form missing or navigation / error copy wrong |
 | `src/components/auth/logout-panel.test.tsx` (or equivalent) | Calls `POST /api/auth/logout` and exposes a path back to `/login` | Panel missing or does not call logout |
-| Home placeholder (`src/components/home/instructor-home.test.tsx`) | Instructor home stub at `/home`: quiz-making is next; **Log out** link; no Login or Register | Stub copy missing or still the starter home |
+| Home placeholder (`src/components/home/instructor-home.test.tsx`) | Instructor home stub at `/home`: quiz-making is next; **Log out** link top-right; no Login or Register | Stub copy missing or still the starter home |
 
 If a page file is a thin Server Component wrapper, test the client child; do not force-render the page module.
 
@@ -558,7 +558,7 @@ If a page file is a thin Server Component wrapper, test the client child; do not
 
 1. Login and register **pages + forms** starting from the shadcn Login / Signup blocks above, with the listed adaptations
 2. `/` redirects to `/login` (login is the default page)
-3. `/home` instructor / MCQ placeholder with a **Log out** link only (no Login / Register)
+3. `/home` instructor / MCQ placeholder with a **Log out** link top-right only (no Login / Register)
 4. `/logout` page and logout panel
 5. `'use client'` only on the form / panel components; never import D1 or hashing into them
 
@@ -591,10 +591,10 @@ If a page file is a thin Server Component wrapper, test the client child; do not
 
 - App Router pages: `/` → `/login`, `/register`, `/login`, `/logout`, `/home`
 - Forms using shadcn/ui `field` primitives (`src/components/auth/login-form.tsx`, `register-form.tsx`, `logout-panel.tsx`)
-- Instructor home logout-only stub (`src/components/home/instructor-home.tsx:12`)
+- Instructor home logout-only stub, Log out top-right (`src/components/home/instructor-home.tsx:6-8`)
 - Client-form tests observed red, then green
 
-### Phase 5: Verify - PLANNED
+### Phase 5: Verify - COMPLETED
 
 **Objective**: Prove the slice works before calling it done. The suite should already be **green**. Preview covers real D1 / Workers. A new bug starts a red → green mini-cycle.
 
@@ -618,26 +618,48 @@ Write or tighten a Vitest case in the matching phase's file first. `npm run test
 
 **TDD completion:**
 
-- [ ] Red: only if a preview bug — regression test written first, observed failing, and user watched red
-- [ ] Watch red: user confirmed red **only if** a bug test was added; otherwise n/a
-- [ ] Implement: fix if needed
-- [ ] Green: full `npm run test` passing (Phases 1–4 still green; quote in the Watch log)
-- [ ] Watch green: user ran `npm run test` and confirmed the passing suite
-- [ ] Acceptance: remaining criteria checked; lint and build reported
-- [ ] Stop: slice ready; user deploys — do not run `npm run deploy`
+- [x] Red: only if a preview bug — regression test written first, observed failing, and user watched red
+- [x] Watch red: n/a (no preview bug)
+- [x] Implement: no product fix required
+- [x] Green: full `npm run test` passing (Phases 1–4 still green; quote in the Watch log)
+- [x] Watch green: user confirmed Phase 5 looks good
+- [x] Acceptance: remaining criteria checked; lint and build reported
+- [x] Stop: slice ready; user deploys — do not run `npm run deploy`
 
 **Watch log:**
 
 | Gate | `npm run test` result (quote) | User watched? |
 |------|-------------------------------|---------------|
-| Red (only if a preview bug) | n/a unless a bug appears | |
-| Green (verify suite) | | No |
+| Red (only if a preview bug) | n/a — no preview bug | n/a |
+| Green (verify suite) | `Test Files  11 passed (11)` / `Tests  36 passed (36)` | Yes — user confirmed Phase 5 looks good |
+
+**Verify command results (2026-09-22):**
+
+| Command | Result |
+|---------|--------|
+| `npm run test` | `Test Files  11 passed (11)` / `Tests  36 passed (36)` |
+| `npm run lint` | exit 0 (no ESLint output) |
+| `npm run build` | Next.js 16.2.12 compiled successfully; routes include `/` (static redirect), `/login`, `/register`, `/logout`, `/home`, `POST /api/auth/*` |
+
+**Preview notes** (`npm run preview` → wrangler Ready on `http://127.0.0.1:8787`; D1 binding `env.quizmaker` **local**):
+
+- `GET /` → 307 `Location: /login`
+- `GET /login` → 200, login form present
+- `POST /api/auth/register` → 201 `{ user }` (no `password_hash`); `username` equals normalized email
+- Local D1 row: `password_hash` prefix `pbkdf2$sha256$100000$` (not the plaintext password)
+- `POST /api/auth/login` correct password → 200 `{ user }`
+- `GET /home` → instructor stub, Log out top-right, no Login / Register links
+- `POST /api/auth/logout` → 200 `{ "ok": true }`
+- `POST /api/auth/login` wrong password → 401 `"Invalid email or password"`
+- Duplicate register → 409 `"An account with this email already exists"`
+
+Windows: first `npm run preview` failed with `EPERM` deleting `.open-next` because `npm run dev` had the folder locked. After stopping Next dev, preview built and served. See Troubleshooting.
 
 **Deliverables**:
 
-- Reported `npm run test` / `lint` / `build` results
-- Manual preview notes
-- Regression tests for any preview bugs
+- Reported `npm run test` / `lint` / `build` results (see table above)
+- Manual preview notes against `http://127.0.0.1:8787`
+- No preview-bug regression tests (no product bug found)
 
 **Status Markers**:
 
@@ -652,7 +674,7 @@ Write or tighten a Vitest case in the matching phase's file first. `npm run test
 
 ### Implementation record (as built)
 
-Line numbers are from the tree at Phase 4 completion (2026-09-22). Phase 5 (lint, build, Workers preview) is still planned.
+Line numbers are from the tree at Phase 4 completion (2026-09-22). Phase 5 verify ran lint, build, and Workers preview against local D1 (see Phase 5 Watch log).
 
 #### Routing
 
@@ -664,7 +686,7 @@ Line numbers are from the tree at Phase 4 completion (2026-09-22). Phase 5 (lint
 | `/logout` | `src/app/logout/page.tsx:3-10` | Renders `LogoutPanel` |
 | `/home` | `src/app/home/page.tsx:3-4` | Renders `InstructorHome` (MCQ stub) |
 
-Late Phase 4 product change: instructor home moved off `/` so login could be the default. Instructor home no longer links to Login or Register; it only links to Log out (`src/components/home/instructor-home.tsx:12`).
+Late Phase 4 product change: instructor home moved off `/` so login could be the default. Instructor home no longer links to Login or Register; it only links to Log out at the top right (`src/components/home/instructor-home.tsx:6-8`).
 
 #### Phase 1 — D1 `users`
 
@@ -697,7 +719,7 @@ Late Phase 4 product change: instructor home moved off `/` so login could be the
 - `LoginForm` (`'use client'`, `src/components/auth/login-form.tsx:1`): POST `/api/auth/login` (`src/components/auth/login-form.tsx:40-44`); on 200 `router.push("/home")` (`src/components/auth/login-form.tsx:46-48`); on failure `"Invalid email or password"` (`src/components/auth/login-form.tsx:51`). Sign up → `/register`. No Google, no forgot-password
 - `RegisterForm` (`'use client'`, `src/components/auth/register-form.tsx:1`): client checks min 8 and match (`src/components/auth/register-form.tsx:39-47`); POST body omits confirm password (`src/components/auth/register-form.tsx:49-53`); on 201 `router.push("/login?registered=1")` (`src/components/auth/register-form.tsx:55-57`). First + last name, no Google
 - `LogoutPanel` (`'use client'`, `src/components/auth/logout-panel.tsx:1`): `POST /api/auth/logout` on mount (`src/components/auth/logout-panel.tsx:15-17`); link to `/login` (`src/components/auth/logout-panel.tsx:28`)
-- `InstructorHome` (`src/components/home/instructor-home.tsx:3-15`): stub copy; **Log out** only (`src/components/home/instructor-home.tsx:12`). No Login / Register
+- `InstructorHome` (`src/components/home/instructor-home.tsx:3-18`): stub copy; **Log out** top-right only (`src/components/home/instructor-home.tsx:6-8`). No Login / Register
 - Client forms do not import `@/lib/db`, `@/lib/password`, or `@/lib/services/users`
 
 #### Test harness
@@ -726,7 +748,7 @@ Late Phase 4 product change: instructor home moved off `/` so login could be the
 - `src/app/register/page.tsx`
 - `src/app/logout/page.tsx`
 - `src/app/home/page.tsx` — instructor / MCQ stub wrapper
-- `src/components/home/instructor-home.tsx:12` — Log out only
+- `src/components/home/instructor-home.tsx:6-8` — Log out top-right only
 - `src/components/home/instructor-home.test.tsx`
 - `src/components/auth/login-form.tsx`, `register-form.tsx`, `logout-panel.tsx` (+ colocated `*.test.tsx`)
 - `vitest.config.ts:5-17` — Vitest + jsdom + `@/` paths + build-dir excludes
@@ -822,9 +844,9 @@ No auth framework (Better Auth, NextAuth, Clerk) in this sprint. Do not add `@cl
 - [x] Client components do not import D1 or hashing modules
 - [x] No cookies, JWTs, or social-login providers are introduced
 - [x] Vitest is configured; `npm run test` and `npm run test:watch` scripts exist
-- [ ] Each implementation phase writes its tests first (observed red), the user watches red then green via `npm run test`, and those tests fail if the behavior is removed (Phases 1–2 were agent-only; Phases 3–4 were watched. Revisit at Phase 5)
+- [x] Each implementation phase writes its tests first (observed red), the user watches red then green via `npm run test`, and those tests fail if the behavior is removed (Phases 1–2 were agent-only; Phases 3–4 were watched. Phase 5 added no new product tests)
 - [x] Unit tests do not call real D1 or the network
-- [ ] `npm run test`, `npm run lint`, and `npm run build` succeed (Phase 5: lint and build not reported yet)
+- [x] `npm run test`, `npm run lint`, and `npm run build` succeed
 
 ---
 
@@ -931,6 +953,12 @@ Issues found while implementing this slice:
 **Cause**: Logout has no body and does not read the request.
 **Solution**: `export async function POST()` with no args (`src/app/api/auth/logout/route.ts:1`).
 
+### `npm run preview` EPERM on `.open-next` (Windows)
+
+**Problem**: `opennextjs-cloudflare build` fails with `Error: EPERM, Permission denied: ...\.open-next`.
+**Cause**: `npm run dev` (Next) keeps a handle on `.open-next/assets`. OpenNext tries to `rmSync` that directory before rebuilding.
+**Solution**: Stop `npm run dev` first, then run `npm run preview`. OpenNext also warns it is not fully compatible with Windows.
+
 ### Register/login 500 under `npm run dev`
 
 **Problem**: Form or `Invoke-RestMethod` hits 500 (`Unable to register`).
@@ -990,6 +1018,6 @@ Issues found while implementing this slice:
 ## Current Status
 
 **Last Updated**: 2026-09-22
-**Current Phase**: Phase 4 COMPLETED. Phase 5 Verify is PLANNED.
-**Status**: Phases 1–4 are implemented. `/` redirects to `/login`. Successful login goes to `/home`. Instructor home has Log out only (no Login / Register). User verified the local flows (login, register, login, logout). `npm run test` is green: 11 files / 36 tests.
-**Next Steps**: Start Phase 5 only after the user asks: full suite watch, `npm run lint`, `npm run build`, and `npm run preview`. Do not deploy.
+**Current Phase**: Phase 5 COMPLETED. This sprint slice is done.
+**Status**: Register / login / logout is implemented and verified. `/` redirects to `/login`; successful login goes to `/home`; instructor home has Log out top-right only. `npm run test` 11 files / 36 tests; lint and build succeeded; Workers preview against local D1 passed. User confirmed Phase 5.
+**Next Steps**: User deploys if they want production. Do not run `npm run deploy` unless they ask.
