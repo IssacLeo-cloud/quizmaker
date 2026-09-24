@@ -15,8 +15,9 @@ QuizMaker is a greenfield app for teachers who will later collaborate on a
 multiple-choice question bank. Sprint 1 identity
 (`ai-workspace/register-login-logout-prd.md`) is done. Sprint 2 source of
 truth is `ai-workspace/MCQ-Technical-prd.md`. Phase 1 added D1 tables
-`mcqs`, `mcq_choices`, and `mcq_attempts` (binding `quizmaker`). Later
-phases add sessions, the MCQ service, APIs, and instructor UI. Do not start
+`mcqs`, `mcq_choices`, and `mcq_attempts` (binding `quizmaker`). Phase 2
+added a signed `quizmaker_session` cookie (`SESSION_SECRET` in `.dev.vars`).
+Later phases add the MCQ service, APIs, and instructor UI. Do not start
 the next phase until the user confirms the current one. Implementation is
 test-driven: write failing Vitest tests first, stop so the user can run
 `npm run test` and see **red**, implement only after they confirm, then

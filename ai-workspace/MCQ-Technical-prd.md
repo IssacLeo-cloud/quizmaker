@@ -470,7 +470,7 @@ Watch log:
 |-------|-----------|-------|---------------|-------------------------|--------|
 | Sprint 1 baseline | Yes | 11 files / 36 tests | Green | Yes | COMPLETED |
 | 1 MCQ migrations | **Yes** | `migrations/create_mcqs.schema.test.ts` | Green: 12 files / 37 tests | Yes | COMPLETED |
-| 2 Session cookie | Planned | `src/lib/session.test.ts`, updated auth route tests | — | No | PLANNED |
+| 2 Session cookie | **Yes** | `src/lib/session.test.ts`, updated auth route tests | Green: 13 files / 44 tests | Yes | COMPLETED |
 | 3 MCQ service | Planned | `src/lib/services/mcqs.test.ts` | — | No | PLANNED |
 | 4 MCQ APIs | Planned | `src/lib/validators/mcq.test.ts`, `src/app/api/mcqs/**/route.test.ts` | — | No | PLANNED |
 | 5 MCQ UI | Planned | `src/components/mcq/*.test.tsx`, updated `instructor-home.test.tsx` | — | No | PLANNED |
@@ -567,7 +567,7 @@ Same shape as `migrations/create_users.schema.test.ts:23-47`: read the `.sql` fi
 - `migrations/create_mcqs.schema.test.ts` observed red, then green
 - User applied the migration locally and in production. Agents do not apply further migrations.
 
-### Phase 2: Signed session cookie - PLANNED
+### Phase 2: Signed session cookie - COMPLETED
 
 **Objective**: The server can tell who is signed in. Login issues a session, logout clears it, and the helpers MCQ code will depend on exist and fail closed.
 
@@ -603,21 +603,21 @@ No MCQ code in this phase.
 
 **TDD completion:**
 
-- [ ] Red: listed tests written first
-- [ ] Red: `npm run test` observed failing (quote the failure in the Watch log)
-- [ ] Watch red: user ran `npm run test` and confirmed the failure; no implementation until then
-- [ ] Implement: only enough to satisfy those tests
-- [ ] Green: `npm run test` passing (this phase + earlier + Sprint 1; quote in the Watch log)
-- [ ] Watch green: user ran `npm run test` and confirmed the passing suite
-- [ ] Acceptance: this phase's criteria checked
-- [ ] Stop: PRD status updated; waiting for user confirmation before Phase 3
+- [x] Red: listed tests written first (`src/lib/session.test.ts`, updated login and logout route tests)
+- [x] Red: `npm run test` observed failing (quote the failure in the Watch log)
+- [x] Watch red: user confirmed the red and asked to implement
+- [x] Implement: `src/lib/session.ts`, login/logout Set-Cookie, `SESSION_SECRET` via `.dev.vars` + typegen
+- [x] Green: `npm run test` passing (this phase + earlier + Sprint 1; quote in the Watch log)
+- [x] Watch green: user confirmed Phase 2 looks good
+- [x] Acceptance: this phase's criteria checked (login sets signed session; logout clears it; tamper/expiry fail closed)
+- [x] Stop: PRD status updated; waiting for user confirmation before Phase 3
 
 **Watch log:**
 
 | Gate | `npm run test` result (quote) | User watched? |
 |------|-------------------------------|---------------|
-| Red (before implement) | | No — do not implement until Yes |
-| Green (after implement) | | No — not COMPLETED until Yes |
+| Red (before implement) | `Failed to resolve import "@/lib/session"` from `src/lib/session.test.ts`. Login 200: `expected null to be truthy` (`set-cookie`). Logout: `expected null to be truthy` (`set-cookie`). `Test Files  3 failed \| 10 passed (13)` / `Tests  2 failed \| 35 passed (37)` | Yes — user confirmed red |
+| Green (after implement) | `Test Files  13 passed (13)` / `Tests  44 passed (44)` | Yes — user confirmed Phase 2 looks good |
 
 **Deliverables**:
 
@@ -874,7 +874,7 @@ Write or tighten a Vitest case in the matching phase's file first. `npm run test
 |---|---|
 | `migrations/0002_create_mcqs.sql:3-36` | `mcqs`, `mcq_choices`, `mcq_attempts` (as built) |
 | `migrations/create_mcqs.schema.test.ts:23-73` | SQL contract test for that migration (as built) |
-| `src/lib/session.ts` | Signed session cookie: create, clear, verify |
+| `src/lib/session.ts:122-142` | Signed session cookie: create, clear, verify (as built) |
 | `src/lib/services/mcqs.ts` | The only module running SQL for the MCQ tables |
 | `src/lib/validators/mcq.ts` | Zod schemas for MCQ bodies and attempts |
 | `src/app/api/mcqs/route.ts` | `GET` list, `POST` create |
@@ -993,7 +993,7 @@ vi.mock("@/lib/session", () => ({
 
 - `npm run dev` runs on Node and may not expose D1 or `.dev.vars` the way Workers does. Verify anything touching `env.quizmaker` or `SESSION_SECRET` with `npm run preview`
 - D1 enforces foreign keys, but cascade behaviour inside `batch()` is not something to lean on. Delete attempts, then choices, then the question, explicitly
-- `Secure` cookies are not sent over plain `http://`. Local preview is `http://127.0.0.1:8787`, so set `Secure` only when the request is HTTPS, or accept that local testing needs it off and document which. Decide this in Phase 2 and record the choice here
+- `Secure` is always set on `quizmaker_session` (`src/lib/session.ts:5`). That matches the contract tests. Local `npm run preview` is `http://127.0.0.1:8787`, so the browser may refuse to store the cookie until HTTPS or a later exception. Recorded 2026-09-24.
 - Client components never import `@/lib/db`, `@/lib/session`, or `@/lib/services/*`. The pages pass plain serializable data down
 - shadcn components are source files, not packages — no approval needed. Any npm package does need approval first
 - Do not edit `cloudflare-env.d.ts` by hand; regenerate with `npm run cf-typegen` after adding `SESSION_SECRET`
@@ -1019,10 +1019,10 @@ Ask before adding anything to `package.json`. Specifically: no auth library, no 
 
 **Sessions**
 
-- [ ] A successful login sets an `HttpOnly` signed `quizmaker_session` cookie; a failed login sets none
-- [ ] Logout clears that cookie
-- [ ] A tampered, malformed, or expired cookie resolves to no user
-- [ ] `SESSION_SECRET` is in `.dev.vars` with a placeholder in `.dev.vars.example`, and is never committed
+- [x] A successful login sets an `HttpOnly` signed `quizmaker_session` cookie; a failed login sets none
+- [x] Logout clears that cookie
+- [x] A tampered, malformed, or expired cookie resolves to no user
+- [x] `SESSION_SECRET` is in `.dev.vars` with a placeholder in `.dev.vars.example`, and is never committed
 
 **API**
 
@@ -1197,6 +1197,6 @@ Add entries here as this sprint's bugs are found and fixed.
 ## Current Status
 
 **Last Updated**: 2026-09-24
-**Current Phase**: Phase 1 COMPLETED
-**Status**: Phase 1 is done. `0002_create_mcqs.sql` is in the repo; user applied it locally and in production. `npm run test` is `Test Files  12 passed (12)` / `Tests  37 passed (37)`. Do not apply migrations in later phases.
-**Next Steps**: Start Phase 2 (signed session cookie) after this commit is on `feat/mcq`.
+**Current Phase**: Phase 2 COMPLETED
+**Status**: Signed `quizmaker_session` cookie is issued on login and cleared on logout. `npm run test` is `Test Files  13 passed (13)` / `Tests  44 passed (44)`. Do not apply migrations. Production still needs `npx wrangler secret put SESSION_SECRET` when the user deploys.
+**Next Steps**: Start Phase 3 (MCQ service) when the user confirms.

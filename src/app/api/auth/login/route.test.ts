@@ -2,6 +2,12 @@ const { verifyPassword } = vi.hoisted(() => ({
   verifyPassword: vi.fn(),
 }));
 
+vi.mock("@opennextjs/cloudflare", () => ({
+  getCloudflareContext: vi.fn(async () => ({
+    env: { SESSION_SECRET: "test-session-secret-at-least-32-chars!!" },
+  })),
+}));
+
 vi.mock("@/lib/services/users", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@/lib/services/users")>();
   return {
@@ -53,6 +59,15 @@ describe("POST /api/auth/login", () => {
       validBody.email,
       validBody.password,
     );
+
+    const setCookie = response.headers.get("set-cookie");
+    expect(setCookie).toBeTruthy();
+    expect(setCookie).toMatch(/quizmaker_session=/);
+    expect(setCookie).toMatch(/HttpOnly/i);
+    expect(setCookie).toMatch(/SameSite=Lax/i);
+    expect(setCookie).toMatch(/Path=\//);
+    expect(setCookie).toMatch(/Secure/i);
+    expect(setCookie).toMatch(/Max-Age=604800/);
   });
 
   it("returns 401 with the same generic message for unknown email and wrong password", async () => {
@@ -72,6 +87,8 @@ describe("POST /api/auth/login", () => {
     expect(wrongPassword.status).toBe(401);
     expect(unknownPayload.error).toBe("Invalid email or password");
     expect(wrongPayload.error).toBe(unknownPayload.error);
+    expect(unknownEmail.headers.get("set-cookie")).toBeNull();
+    expect(wrongPassword.headers.get("set-cookie")).toBeNull();
   });
 
   it("returns 400 on an invalid body", async () => {

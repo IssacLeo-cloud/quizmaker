@@ -33,5 +33,10 @@ describe("POST /api/auth/logout", () => {
     expect(payload).toEqual({ ok: true });
     expect(createUser).not.toHaveBeenCalled();
     expect(verifyPassword).not.toHaveBeenCalled();
+
+    const setCookie = response.headers.get("set-cookie");
+    expect(setCookie).toBeTruthy();
+    expect(setCookie).toMatch(/quizmaker_session=/);
+    expect(setCookie).toMatch(/Max-Age=0/);
   });
 });

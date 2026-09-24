@@ -1,3 +1,4 @@
+import { createSessionCookie } from "@/lib/session";
 import { verifyPassword } from "@/lib/services/users";
 import { firstIssueMessage, loginSchema } from "@/lib/validators/auth";
 
@@ -26,7 +27,13 @@ export async function POST(request: Request) {
       );
     }
 
-    return Response.json({ user }, { status: 200 });
+    return Response.json(
+      { user },
+      {
+        status: 200,
+        headers: { "Set-Cookie": await createSessionCookie(user.id) },
+      },
+    );
   } catch {
     return Response.json({ error: "Unable to log in" }, { status: 500 });
   }
