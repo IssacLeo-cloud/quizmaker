@@ -472,7 +472,7 @@ Watch log:
 | 1 MCQ migrations | **Yes** | `migrations/create_mcqs.schema.test.ts` | Green: 12 files / 37 tests | Yes | COMPLETED |
 | 2 Session cookie | **Yes** | `src/lib/session.test.ts`, updated auth route tests | Green: 13 files / 44 tests | Yes | COMPLETED |
 | 3 MCQ service | **Yes** | `src/lib/services/mcqs.test.ts` | Green: 14 files / 53 tests | Yes | COMPLETED |
-| 4 MCQ APIs | Planned | `src/lib/validators/mcq.test.ts`, `src/app/api/mcqs/**/route.test.ts` | — | No | PLANNED |
+| 4 MCQ APIs | **Yes** | `src/lib/validators/mcq.test.ts`, `src/app/api/mcqs/**/route.test.ts` | Green: 18 files / 83 tests | Agent ran red→green; waiting for user verify | IN PROGRESS / GREEN |
 | 5 MCQ UI | Planned | `src/components/mcq/*.test.tsx`, updated `instructor-home.test.tsx` | — | No | PLANNED |
 | 6 Verify | Mini-loop only if a bug appears | Full suite stays green | — | No | PLANNED |
 
@@ -678,7 +678,7 @@ Extend the in-memory fake D1 from `src/lib/services/users.test.ts:23-78` to cove
 - Public MCQ / choice / attempt types
 - Extended in-memory fake D1 covering the three tables and `batch()`
 
-### Phase 4: MCQ API routes - PLANNED
+### Phase 4: MCQ API routes - IN PROGRESS / GREEN
 
 **Objective**: HTTP surface for list, create, read, update, delete, and attempts — each one session-guarded.
 
@@ -715,21 +715,21 @@ No new npm package: `zod` is already installed (`package.json:28`).
 
 **TDD completion:**
 
-- [ ] Red: listed tests written first
-- [ ] Red: `npm run test` observed failing (quote the failure in the Watch log)
-- [ ] Watch red: user ran `npm run test` and confirmed the failure; no implementation until then
-- [ ] Implement: only enough to satisfy those tests
-- [ ] Green: `npm run test` passing (this phase + earlier + Sprint 1; quote in the Watch log)
-- [ ] Watch green: user ran `npm run test` and confirmed the passing suite
-- [ ] Acceptance: this phase's criteria checked
-- [ ] Stop: PRD status updated; waiting for user confirmation before Phase 5
+- [x] Red: listed tests written first
+- [x] Red: `npm run test` observed failing (quote the failure in the Watch log)
+- [x] Watch red: skipped per `.cursor/rules/sprint-phases.mdc` (agent ran red and implemented)
+- [x] Implement: validators, session guard, `/api/mcqs` routes
+- [x] Green: `npm run test` passing (this phase + earlier + Sprint 1; quote in the Watch log)
+- [ ] Watch green: waiting for the user to verify the phase
+- [x] Acceptance: this phase's criteria checked
+- [ ] Stop: waiting for user confirmation before Phase 5
 
 **Watch log:**
 
 | Gate | `npm run test` result (quote) | User watched? |
 |------|-------------------------------|---------------|
-| Red (before implement) | | No — do not implement until Yes |
-| Green (after implement) | | No — not COMPLETED until Yes |
+| Red (before implement) | `Failed to resolve import "@/lib/validators/mcq"`; `Failed to resolve import "@/app/api/mcqs/route"`. `Test Files  2 failed \| 16 passed (18)` / `Tests  70 passed (70)` | Agent-only (new workflow) |
+| Green (after implement) | `Test Files  18 passed (18)` / `Tests  83 passed (83)` | Waiting for user verify |
 
 **Deliverables**:
 
@@ -876,10 +876,11 @@ Write or tighten a Vitest case in the matching phase's file first. `npm run test
 | `migrations/create_mcqs.schema.test.ts:23-73` | SQL contract test for that migration (as built) |
 | `src/lib/session.ts:122-142` | Signed session cookie: create, clear, verify (as built) |
 | `src/lib/services/mcqs.ts:201-372` | The only module running SQL for the MCQ tables (as built) |
-| `src/lib/validators/mcq.ts` | Zod schemas for MCQ bodies and attempts |
-| `src/app/api/mcqs/route.ts` | `GET` list, `POST` create |
-| `src/app/api/mcqs/[id]/route.ts` | `GET`, `PUT`, `DELETE` one question |
-| `src/app/api/mcqs/[id]/attempts/route.ts` | `GET` list, `POST` record an attempt |
+| `src/lib/validators/mcq.ts:3-30` | Zod schemas for MCQ bodies and attempts (as built) |
+| `src/lib/require-session.ts:3-21` | Shared 401 session guard for MCQ routes (as built) |
+| `src/app/api/mcqs/route.ts:6-47` | `GET` list, `POST` create (as built) |
+| `src/app/api/mcqs/[id]/route.ts:12-82` | `GET`, `PUT`, `DELETE` one question (as built) |
+| `src/app/api/mcqs/[id]/attempts/route.ts:17-80` | `GET` list, `POST` record an attempt (as built) |
 | `src/app/home/page.tsx` | Session guard + MCQ list (replaces the stub) |
 | `src/app/home/mcqs/new/page.tsx` | Create page |
 | `src/app/home/mcqs/[id]/edit/page.tsx` | Edit page, `notFound()` when unowned |
@@ -1026,13 +1027,13 @@ Ask before adding anything to `package.json`. Specifically: no auth library, no 
 
 **API**
 
-- [ ] Every `/api/mcqs*` endpoint returns 401 without a valid session
-- [ ] Another instructor's question id returns 404 on read, update, delete, and attempts
-- [ ] Create and update reject fewer than 2 choices, more than 6, an empty choice, and zero or multiple correct answers with 400
-- [ ] `created_by` comes from the session; a `createdBy` in the body is ignored
-- [ ] An attempt's `isCorrect` is computed server-side; an `isCorrect` in the body is ignored
-- [ ] A `choiceId` from another question returns 400
-- [ ] Delete removes the question, its choices, and its attempts, and returns `{ "ok": true }`
+- [x] Every `/api/mcqs*` endpoint returns 401 without a valid session
+- [x] Another instructor's question id returns 404 on read, update, delete, and attempts
+- [x] Create and update reject fewer than 2 choices, more than 6, an empty choice, and zero or multiple correct answers with 400
+- [x] `created_by` comes from the session; a `createdBy` in the body is ignored
+- [x] An attempt's `isCorrect` is computed server-side; an `isCorrect` in the body is ignored
+- [x] A `choiceId` from another question returns 400
+- [x] Delete removes the question, its choices, and its attempts, and returns `{ "ok": true }`
 
 **UI**
 
@@ -1162,6 +1163,12 @@ Add entries here as this sprint's bugs are found and fixed.
 **Cause**: Wrangler prompts to confirm migrations when the terminal looks interactive.
 **Solution**: Set `CI=true` for a non-interactive apply (`$env:CI = "true"; npx wrangler d1 migrations apply quizmaker --local`). Never add `--remote`.
 
+### Session tamper test can pass a one-character base64 flip
+
+**Problem**: `returns null for a tampered signature` sometimes received `user-1` instead of `null`.
+**Cause**: Flipping the last base64url character (`A`/`B`) can decode to the same HMAC bytes.
+**Solution**: Prefix the signature with `x` so the payload is unambiguously wrong (`src/lib/session.test.ts`).
+
 ### Anticipated: cookie not sent on local preview
 
 **Problem**: Login succeeds but `/home` still redirects to `/login`.
@@ -1197,6 +1204,6 @@ Add entries here as this sprint's bugs are found and fixed.
 ## Current Status
 
 **Last Updated**: 2026-09-24
-**Current Phase**: Phase 3 COMPLETED
-**Status**: MCQ service is in place (`src/lib/services/mcqs.ts`). `npm run test` is `Test Files  14 passed (14)` / `Tests  53 passed (53)`. User watched green. From Phase 4 on, the agent runs red→green without pausing, then commits and pushes `feat/mcq` and waits for the user to verify.
-**Next Steps**: Start Phase 4 (MCQ API routes) when the user confirms.
+**Current Phase**: Phase 4 - MCQ API routes
+**Status**: IN PROGRESS / GREEN. `/api/mcqs` list/create/read/update/delete and attempts are implemented and session-guarded. `npm run test` is `Test Files  18 passed (18)` / `Tests  83 passed (83)`. Waiting for the user to verify before Phase 5.
+**Next Steps**: User verifies Phase 4. Then start Phase 5 (MCQ pages).

@@ -70,10 +70,7 @@ describe("session cookie", () => {
   it("returns null for a tampered signature", async () => {
     const setCookie = await createSessionCookie("user-1");
     const [userId, expiresAt, signature] = cookieValue(setCookie).split(".");
-    const flipped = signature.endsWith("A")
-      ? `${signature.slice(0, -1)}B`
-      : `${signature.slice(0, -1)}A`;
-    const tampered = `${userId}.${expiresAt}.${flipped}`;
+    const tampered = `${userId}.${expiresAt}.x${signature}`;
 
     await expect(
       getSessionUserIdFromCookieHeader(`quizmaker_session=${tampered}`),

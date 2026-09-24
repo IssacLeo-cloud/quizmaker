@@ -17,8 +17,8 @@ multiple-choice question bank. Sprint 1 identity
 truth is `ai-workspace/MCQ-Technical-prd.md`. Phase 1 added D1 tables
 `mcqs`, `mcq_choices`, and `mcq_attempts` (binding `quizmaker`). Phase 2
 added a signed `quizmaker_session` cookie (`SESSION_SECRET` in `.dev.vars`).
-Phase 3 added `src/lib/services/mcqs.ts`. Later phases add the MCQ APIs and
-instructor UI. From Phase 4 on, do not pause at red or green: write tests,
+Phase 3 added `src/lib/services/mcqs.ts`. Phase 4 added session-guarded
+`/api/mcqs` routes. Later phases add the instructor UI. From Phase 4 on, do not pause at red or green: write tests,
 implement, and run `npm run test` yourself. Quote both runs in the PRD
 Watch log. Commit and push to `feat/mcq` at the end of each phase, then
 wait for the user to verify before starting the next phase. See
