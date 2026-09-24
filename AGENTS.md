@@ -12,17 +12,16 @@ Keep it current. An out-of-date description here misleads every future conversat
 -->
 
 QuizMaker is a greenfield app for teachers who will later collaborate on a
-multiple-choice question bank. The source of truth is
-`ai-workspace/register-login-logout-prd.md`. Phase 1 added a D1 `users`
-table (binding `quizmaker`). Phase 2 added PBKDF2 password hashing and a
-user service. Phase 3 added register / login / logout HTTP APIs. Phase 4 added
-auth pages (shadcn forms): `/` redirects to login; instructor home is `/home`
-with Log out top-right. Phase 5 verify (test, lint, build, Workers preview)
-is complete. This identity slice is done; quiz authoring is not in this sprint.
-Implementation is test-driven: write failing Vitest tests first, stop so
-the user can run `npm run test` and see **red**, implement only after they
-confirm, then stop so they can see **green**. Quote both runs in that phase's
-Watch log in the PRD. Wait for confirmation before the next phase.
+multiple-choice question bank. Sprint 1 identity
+(`ai-workspace/register-login-logout-prd.md`) is done. Sprint 2 source of
+truth is `ai-workspace/MCQ-Technical-prd.md`. Phase 1 added D1 tables
+`mcqs`, `mcq_choices`, and `mcq_attempts` (binding `quizmaker`). Later
+phases add sessions, the MCQ service, APIs, and instructor UI. Do not start
+the next phase until the user confirms the current one. Implementation is
+test-driven: write failing Vitest tests first, stop so the user can run
+`npm run test` and see **red**, implement only after they confirm, then
+stop so they can see **green**. Quote both runs in that phase's Watch log
+in the PRD.
 
 ## Stack
 
@@ -72,7 +71,8 @@ anything runtime-sensitive with `npm run preview`.
 ## Working agreements
 
 - **Do not deploy.** Never run `npm run deploy` unless explicitly asked.
-- **Do not touch the remote database.** Migrations may be applied locally only.
+- **Do not apply migrations.** Write SQL under `migrations/` if the schema
+  changes. The user applies `--local` and production. Never `--remote`.
 - **Ask before adding a dependency.** This is a teaching repository; an unexplained
   dependency is a cost. Propose it and say why.
 - **Do not edit generated files.** `cloudflare-env.d.ts`, `next-env.d.ts`, and

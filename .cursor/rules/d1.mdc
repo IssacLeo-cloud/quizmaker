@@ -7,9 +7,10 @@ alwaysApply: false
 # Cloudflare D1
 
 D1 is Cloudflare's SQLite database. This project binds it as `quizmaker` in
-`wrangler.jsonc` (`env.quizmaker`). The `users` table is created by
-`migrations/0001_create_users.sql`. Apply migrations locally only (`--local`)
-unless the user asks otherwise.
+`wrangler.jsonc` (`env.quizmaker`). `users` is created by
+`migrations/0001_create_users.sql`. `mcqs`, `mcq_choices`, and `mcq_attempts`
+are created by `migrations/0002_create_mcqs.sql`. **Do not apply
+migrations.** The user applies them locally and in production.
 
 ## Adding D1 to the project
 
@@ -41,6 +42,5 @@ unless the user asks otherwise.
 - Every schema change is a migration. Do not alter the schema with ad-hoc SQL.
 - Create with `npx wrangler d1 migrations create <db> <description>`.
 - List with `npx wrangler d1 migrations list <db>`.
-- Apply locally with `npx wrangler d1 migrations apply <db> --local`.
-- **Never apply migrations to the remote database.** Do not run `migrations apply` with
-  `--remote`. Remote schema changes are the user's decision to make and execute.
+- **Do not apply migrations.** The user runs `migrations apply` locally and in
+  production. Never run `migrations apply` with `--remote`.

@@ -38,7 +38,7 @@ We believe that giving each signed-in instructor a D1-backed MCQ bank — list, 
 - shadcn/ui only: `table`, `button`, `card`, `field`, `input`, `label`, `badge`, plus a three-dots actions menu and a textarea / radio primitive added with `npx shadcn@latest add`
 - Ownership: an instructor sees and edits **only their own** questions. Another instructor's id in the URL is a 404, not someone else's question
 - Preview writes an attempt row: the question, the chosen choice, and whether it was correct
-- Apply migrations **locally only** (`--local`)
+- Write migration SQL in `migrations/` when the schema changes. **Do not apply migrations** (`--local` or `--remote`). The user applies them locally and in production.
 - Every implementation phase is **red then green** and the **user watches both gates** via `npm run test`, exactly as in Sprint 1. Quote both runs in that phase's Watch log
 
 ### Out of Scope
@@ -151,8 +151,7 @@ Migration workflow (from `.cursor/rules/d1.mdc`):
 
 1. `npx wrangler d1 migrations create quizmaker create_mcqs`
 2. Put the SQL above in the generated file under `migrations/`
-3. `npx wrangler d1 migrations apply quizmaker --local`
-4. Never apply with `--remote` unless the user explicitly asks
+3. **Do not apply** the migration. The user applies it locally and in production.
 
 All three tables go in one migration: they are one unit of schema and the foreign keys reference each other.
 
@@ -470,7 +469,7 @@ Watch log:
 | Phase | TDD used? | Tests | Last observed | User watched red→green? | Status |
 |-------|-----------|-------|---------------|-------------------------|--------|
 | Sprint 1 baseline | Yes | 11 files / 36 tests | Green | Yes | COMPLETED |
-| 1 MCQ migrations | Planned | `migrations/create_mcqs.schema.test.ts` | — | No | PLANNED |
+| 1 MCQ migrations | **Yes** | `migrations/create_mcqs.schema.test.ts` | Green: 12 files / 37 tests | Yes | COMPLETED |
 | 2 Session cookie | Planned | `src/lib/session.test.ts`, updated auth route tests | — | No | PLANNED |
 | 3 MCQ service | Planned | `src/lib/services/mcqs.test.ts` | — | No | PLANNED |
 | 4 MCQ APIs | Planned | `src/lib/validators/mcq.test.ts`, `src/app/api/mcqs/**/route.test.ts` | — | No | PLANNED |
@@ -516,7 +515,7 @@ Every service read and write has a test proving another instructor's id cannot r
 
 ## Implementation Phases
 
-### Phase 1: MCQ migrations - PLANNED
+### Phase 1: MCQ migrations - COMPLETED
 
 **Objective**: Local D1 has `mcqs`, `mcq_choices`, and `mcq_attempts` from a migration. Schema contract test goes red, then green.
 
@@ -534,7 +533,7 @@ Same shape as `migrations/create_users.schema.test.ts:23-47`: read the `.sql` fi
 
 1. `npx wrangler d1 migrations create quizmaker create_mcqs`
 2. Put the Database Schema SQL in the generated file
-3. `npx wrangler d1 migrations apply quizmaker --local`
+3. User applied `0002_create_mcqs` locally and in production. Later phases **do not** run `d1 migrations apply`
 4. No `wrangler.jsonc` change and no `cf-typegen` — the `quizmaker` binding already exists
 
 **Green / acceptance:**
@@ -546,27 +545,27 @@ Same shape as `migrations/create_users.schema.test.ts:23-47`: read the `.sql` fi
 
 **TDD completion:**
 
-- [ ] Red: listed tests written first
-- [ ] Red: `npm run test` observed failing (quote the failure in the Watch log)
-- [ ] Watch red: user ran `npm run test` and confirmed the failure; no implementation until then
-- [ ] Implement: only enough to satisfy those tests
-- [ ] Green: `npm run test` passing (this phase + Sprint 1; quote in the Watch log)
-- [ ] Watch green: user ran `npm run test` and confirmed the passing suite
-- [ ] Acceptance: this phase's criteria checked
-- [ ] Stop: PRD status updated; waiting for user confirmation before Phase 2
+- [x] Red: listed tests written first (`migrations/create_mcqs.schema.test.ts`)
+- [x] Red: `npm run test` observed failing (quote the failure in the Watch log)
+- [x] Watch red: user confirmed `11 files / 36 tests` (Sprint 1 still green; schema test red)
+- [x] Implement: `0002_create_mcqs.sql` written and applied to local D1 only
+- [x] Green: `npm run test` passing (this phase + Sprint 1; quote in the Watch log)
+- [x] Watch green: user confirmed Phase 1 looks good (local and production apply verified)
+- [x] Acceptance: this phase's criteria checked (three tables from a migration; FKs and indexes in SQL)
+- [x] Stop: PRD status updated; waiting for user confirmation before Phase 2
 
 **Watch log:**
 
 | Gate | `npm run test` result (quote) | User watched? |
 |------|-------------------------------|---------------|
-| Red (before implement) | | No — do not implement until Yes |
-| Green (after implement) | | No — not COMPLETED until Yes |
+| Red (before implement) | `FAIL  migrations/create_mcqs.schema.test.ts > mcqs migration > creates mcqs, mcq_choices, and mcq_attempts with columns, foreign keys, and indexes` — `AssertionError: expected 0 to be greater than 0` at `create_mcqs.schema.test.ts:12`. `Test Files  1 failed \| 11 passed (12)` / `Tests  1 failed \| 36 passed (37)` | Yes — user quoted `11 files / 36 tests` and said implement |
+| Green (after implement) | `Test Files  12 passed (12)` / `Tests  37 passed (37)` | Yes — user confirmed Phase 1 looks good |
 
 **Deliverables**:
 
 - `migrations/0002_create_mcqs.sql` with all three tables
 - `migrations/create_mcqs.schema.test.ts` observed red, then green
-- Migration applied to local D1 only
+- User applied the migration locally and in production. Agents do not apply further migrations.
 
 ### Phase 2: Signed session cookie - PLANNED
 
@@ -873,8 +872,8 @@ Write or tighten a Vitest case in the matching phase's file first. `npm run test
 
 | File | Purpose |
 |---|---|
-| `migrations/0002_create_mcqs.sql` | `mcqs`, `mcq_choices`, `mcq_attempts` |
-| `migrations/create_mcqs.schema.test.ts` | SQL contract test for that migration |
+| `migrations/0002_create_mcqs.sql:3-36` | `mcqs`, `mcq_choices`, `mcq_attempts` (as built) |
+| `migrations/create_mcqs.schema.test.ts:23-73` | SQL contract test for that migration (as built) |
 | `src/lib/session.ts` | Signed session cookie: create, clear, verify |
 | `src/lib/services/mcqs.ts` | The only module running SQL for the MCQ tables |
 | `src/lib/validators/mcq.ts` | Zod schemas for MCQ bodies and attempts |
@@ -998,7 +997,7 @@ vi.mock("@/lib/session", () => ({
 - Client components never import `@/lib/db`, `@/lib/session`, or `@/lib/services/*`. The pages pass plain serializable data down
 - shadcn components are source files, not packages — no approval needed. Any npm package does need approval first
 - Do not edit `cloudflare-env.d.ts` by hand; regenerate with `npm run cf-typegen` after adding `SESSION_SECRET`
-- Migrations are applied `--local` only
+- Do not run `d1 migrations apply` (local or remote). Write SQL files only; the user applies them.
 
 ### Dependencies to add
 
@@ -1014,8 +1013,8 @@ Ask before adding anything to `package.json`. Specifically: no auth library, no 
 
 **Database**
 
-- [ ] Local D1 has `mcqs`, `mcq_choices`, and `mcq_attempts`, created by a migration (not ad-hoc SQL)
-- [ ] `mcq_choices.mcq_id` and `mcq_attempts.mcq_id` / `choice_id` cascade on delete
+- [x] Local D1 has `mcqs`, `mcq_choices`, and `mcq_attempts`, created by a migration (not ad-hoc SQL)
+- [x] `mcq_choices.mcq_id` and `mcq_attempts.mcq_id` / `choice_id` cascade on delete
 - [ ] A saved question has between 2 and 6 choice rows with positions `0..n-1` and exactly one `is_correct = 1`
 
 **Sessions**
@@ -1157,6 +1156,12 @@ Carried forward from Sprint 1 and still relevant: Vitest hanging on build direct
 
 Add entries here as this sprint's bugs are found and fixed.
 
+### Wrangler `d1 migrations apply --local` waits for confirmation
+
+**Problem**: `npx wrangler d1 migrations apply quizmaker --local` hangs after printing `Resource location: local` and never finishes.
+**Cause**: Wrangler prompts to confirm migrations when the terminal looks interactive.
+**Solution**: Set `CI=true` for a non-interactive apply (`$env:CI = "true"; npx wrangler d1 migrations apply quizmaker --local`). Never add `--remote`.
+
 ### Anticipated: cookie not sent on local preview
 
 **Problem**: Login succeeds but `/home` still redirects to `/login`.
@@ -1177,8 +1182,8 @@ Add entries here as this sprint's bugs are found and fixed.
 2. Sprint 1 (`ai-workspace/register-login-logout-prd.md`) is the precedent for structure, service shape, and test style. Follow it rather than inventing a new pattern.
 3. Sessions are **in scope this sprint** and are a deliberate change to Sprint 1's "no cookies" boundary. Do not extend that to JWTs, refresh tokens, or an auth library.
 4. No new npm package without asking. `zod` is installed; shadcn components are copied source and need no approval.
-5. Apply D1 migrations locally only. Never `--remote`.
-6. Never run `npm run deploy`. The user deploys.
+5. Do not apply D1 migrations (`--local` or `--remote`). The user applies them. Write the SQL file only if a later phase needs a schema change.
+6. Never run `npm run deploy`. The user deploys. Commit and push later phases to `feat/mcq`.
 7. Ownership is a security boundary. Every service function takes `userId` first, filtering happens in SQL, and every route 401s without a session. Write the cross-owner test.
 8. Never trust the client for `createdBy` or an attempt's `isCorrect`. Both are derived server-side.
 9. Centralize SQL in `src/lib/services/mcqs.ts`; numbered placeholders only.
@@ -1192,6 +1197,6 @@ Add entries here as this sprint's bugs are found and fixed.
 ## Current Status
 
 **Last Updated**: 2026-09-24
-**Current Phase**: Phase 1 - MCQ migrations
-**Status**: PLANNED. This PRD is written and awaiting review. No code or tests have been written for Sprint 2. Sprint 1 is COMPLETED at 11 files / 36 tests green.
-**Next Steps**: User reviews this PRD (especially the session decision, the per-instructor list, and the edit-discards-attempts behaviour). On confirmation, start Phase 1 by writing `migrations/create_mcqs.schema.test.ts` and stopping at the red gate.
+**Current Phase**: Phase 1 COMPLETED
+**Status**: Phase 1 is done. `0002_create_mcqs.sql` is in the repo; user applied it locally and in production. `npm run test` is `Test Files  12 passed (12)` / `Tests  37 passed (37)`. Do not apply migrations in later phases.
+**Next Steps**: Start Phase 2 (signed session cookie) after this commit is on `feat/mcq`.
