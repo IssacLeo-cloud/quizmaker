@@ -20,8 +20,9 @@ added a signed `quizmaker_session` cookie (`SESSION_SECRET` in `.dev.vars`).
 Phase 3 added `src/lib/services/mcqs.ts`. Phase 4 added session-guarded
 `/api/mcqs` routes. Later phases add the instructor UI. From Phase 4 on, do not pause at red or green: write tests,
 implement, and run `npm run test` yourself. Quote both runs in the PRD
-Watch log. Commit and push to `feat/mcq` at the end of each phase, then
-wait for the user to verify before starting the next phase. See
+Watch log. Do not commit when a phase goes green. Wait for the user to
+verify. When they confirm the phase is correct and ask to start the next
+one, commit the completed phase first, then start. See
 `.cursor/rules/sprint-phases.mdc`.
 
 ## Stack
@@ -84,8 +85,9 @@ anything runtime-sensitive with `npm run preview`.
 - **Verify at phase end, not mid-loop.** Write tests first and observe red,
   implement, observe green (earlier phases stay green), quote both runs in
   the PRD Watch log, tick that phase's acceptance boxes. Do **not** stop
-  for the user at red or green. Commit and push `feat/mcq` when the phase
-  is green, then wait for the user to verify before the next phase.
+  for the user at red or green. Do not commit at green. Wait for the user
+  to verify. When they confirm and ask to start the next phase, commit
+  the completed phase, then start.
 - **Say when you are unsure.** A flagged uncertainty is more useful than a confident
   guess that has to be unwound later.
 

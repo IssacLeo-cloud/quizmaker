@@ -472,7 +472,7 @@ Watch log:
 | 1 MCQ migrations | **Yes** | `migrations/create_mcqs.schema.test.ts` | Green: 12 files / 37 tests | Yes | COMPLETED |
 | 2 Session cookie | **Yes** | `src/lib/session.test.ts`, updated auth route tests | Green: 13 files / 44 tests | Yes | COMPLETED |
 | 3 MCQ service | **Yes** | `src/lib/services/mcqs.test.ts` | Green: 14 files / 53 tests | Yes | COMPLETED |
-| 4 MCQ APIs | **Yes** | `src/lib/validators/mcq.test.ts`, `src/app/api/mcqs/**/route.test.ts` | Green: 18 files / 83 tests | Agent ran red→green; waiting for user verify | IN PROGRESS / GREEN |
+| 4 MCQ APIs | **Yes** | `src/lib/validators/mcq.test.ts`, `src/app/api/mcqs/**/route.test.ts` | Green: 18 files / 83 tests | Yes | COMPLETED |
 | 5 MCQ UI | Planned | `src/components/mcq/*.test.tsx`, updated `instructor-home.test.tsx` | — | No | PLANNED |
 | 6 Verify | Mini-loop only if a bug appears | Full suite stays green | — | No | PLANNED |
 
@@ -678,7 +678,7 @@ Extend the in-memory fake D1 from `src/lib/services/users.test.ts:23-78` to cove
 - Public MCQ / choice / attempt types
 - Extended in-memory fake D1 covering the three tables and `batch()`
 
-### Phase 4: MCQ API routes - IN PROGRESS / GREEN
+### Phase 4: MCQ API routes - COMPLETED
 
 **Objective**: HTTP surface for list, create, read, update, delete, and attempts — each one session-guarded.
 
@@ -720,16 +720,16 @@ No new npm package: `zod` is already installed (`package.json:28`).
 - [x] Watch red: skipped per `.cursor/rules/sprint-phases.mdc` (agent ran red and implemented)
 - [x] Implement: validators, session guard, `/api/mcqs` routes
 - [x] Green: `npm run test` passing (this phase + earlier + Sprint 1; quote in the Watch log)
-- [ ] Watch green: waiting for the user to verify the phase
+- [x] Watch green: user confirmed the passing suite
 - [x] Acceptance: this phase's criteria checked
-- [ ] Stop: waiting for user confirmation before Phase 5
+- [x] Stop: user confirmed Phase 4; starting Phase 5
 
 **Watch log:**
 
 | Gate | `npm run test` result (quote) | User watched? |
 |------|-------------------------------|---------------|
 | Red (before implement) | `Failed to resolve import "@/lib/validators/mcq"`; `Failed to resolve import "@/app/api/mcqs/route"`. `Test Files  2 failed \| 16 passed (18)` / `Tests  70 passed (70)` | Agent-only (new workflow) |
-| Green (after implement) | `Test Files  18 passed (18)` / `Tests  83 passed (83)` | Waiting for user verify |
+| Green (after implement) | `Test Files  18 passed (18)` / `Tests  83 passed (83)` | Yes — user confirmed Phase 4 |
 
 **Deliverables**:
 
@@ -1190,12 +1190,12 @@ Add entries here as this sprint's bugs are found and fixed.
 3. Sessions are **in scope this sprint** and are a deliberate change to Sprint 1's "no cookies" boundary. Do not extend that to JWTs, refresh tokens, or an auth library.
 4. No new npm package without asking. `zod` is installed; shadcn components are copied source and need no approval.
 5. Do not apply D1 migrations (`--local` or `--remote`). The user applies them. Write the SQL file only if a later phase needs a schema change.
-6. Never run `npm run deploy`. The user deploys. After each phase is green, commit and push to `feat/mcq`, then wait for the user to verify before the next phase.
+6. Never run `npm run deploy`. The user deploys. After each phase is green, update the PRD and stop — do not commit. When the user confirms the phase is correct and asks to start the next one, commit the completed phase first, then start.
 7. Ownership is a security boundary. Every service function takes `userId` first, filtering happens in SQL, and every route 401s without a session. Write the cross-owner test.
 8. Never trust the client for `createdBy` or an attempt's `isCorrect`. Both are derived server-side.
 9. Centralize SQL in `src/lib/services/mcqs.ts`; numbered placeholders only.
 10. Cite code as `filepath:line-number` once the implementation exists, and fill in the Key Files table with real line numbers as you go.
-11. From Phase 4 on, do **not** pause at Watch red or Watch green. Loop is: Red (agent runs `npm run test`) → Implement → Green (agent runs `npm run test`) → update PRD Watch log → commit and push `feat/mcq` → stop for the user to verify. Do not start the next phase until they confirm. See `.cursor/rules/sprint-phases.mdc`.
+11. From Phase 4 on, do **not** pause at Watch red or Watch green. Loop is: Red (agent runs `npm run test`) → Implement → Green (agent runs `npm run test`) → update PRD Watch log → stop for the user to verify (do not commit). When they confirm the phase is correct and ask to start the next one, commit the completed phase, then start. See `.cursor/rules/sprint-phases.mdc`.
 12. Never write tests that cannot fail. Never hit real D1 from Vitest. If preview finds a bug, add a regression test (red) first, then fix (green).
 13. Update phase status, acceptance checkboxes, test file lists, and the Troubleshooting section as work happens.
 
@@ -1204,6 +1204,6 @@ Add entries here as this sprint's bugs are found and fixed.
 ## Current Status
 
 **Last Updated**: 2026-09-24
-**Current Phase**: Phase 4 - MCQ API routes
-**Status**: IN PROGRESS / GREEN. `/api/mcqs` list/create/read/update/delete and attempts are implemented and session-guarded. `npm run test` is `Test Files  18 passed (18)` / `Tests  83 passed (83)`. Waiting for the user to verify before Phase 5.
-**Next Steps**: User verifies Phase 4. Then start Phase 5 (MCQ pages).
+**Current Phase**: Phase 5 - MCQ pages
+**Status**: STARTING. Phase 4 COMPLETED. Instructor UI is next.
+**Next Steps**: Write Phase 5 tests (red), implement list/form/preview pages, then wait for user verify.

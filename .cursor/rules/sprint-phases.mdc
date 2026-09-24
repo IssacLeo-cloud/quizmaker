@@ -1,5 +1,5 @@
 ---
-description: Sprint phase workflow — run red then green without pausing; commit and wait only at phase end
+description: Sprint phase workflow — run red then green without pausing; commit only after the user confirms the phase and asks to start the next one
 alwaysApply: true
 ---
 
@@ -9,14 +9,17 @@ From Phase 4 onward (Sprint 2 MCQ and later sprints):
 
 1. **Do not pause at red or green for the user to watch.** Write that phase's tests, run `npm run test` (expect red), implement, run `npm run test` again (expect green, earlier phases still green). Quote both runs in the PRD Watch log.
 2. **Still write tests first.** Red must fail for a real reason. If a new test is already green, rewrite it until it can fail.
-3. **Stop only at phase end.** After green, update the PRD (status, TDD checklist, Watch log, acceptance this phase owns). Then **commit and push to `feat/mcq`**. Then wait for the user to verify the phase before starting the next one.
-4. **Do not start the next phase** until the user confirms the current one.
-5. **Do not apply D1 migrations** (`--local` or `--remote`). Do not deploy.
+3. **Stop only at phase end. Do not commit yet.** After green, update the PRD (status, TDD checklist, Watch log, acceptance this phase owns). Leave the work uncommitted. Wait for the user to verify that the implemented phase is correct.
+4. **Do not start the next phase** until the user confirms the current one is correct and tells you to start the next phase.
+5. **When the user confirms and asks to start the next phase:** first **commit** the completed phase's changes, then start the next phase. Apply this commit-then-start step for every phase. Do not commit mid-phase or at green before that confirmation.
+6. **Do not apply D1 migrations** (`--local` or `--remote`). Do not deploy.
 
 ```
-# ✅ one phase, no mid-loop pause
-tests → npm run test (red) → implement → npm run test (green) → PRD → commit/push → wait
+# ✅ one phase, no mid-loop pause; commit only after user confirm
+tests → npm run test (red) → implement → npm run test (green) → PRD → wait for user verify
+user confirms + "start next phase" → commit completed phase → start next phase
 
 # ❌ do not do this anymore
 tests → stop for user → implement → stop for user → wait to commit
+green → commit/push immediately → wait
 ```
