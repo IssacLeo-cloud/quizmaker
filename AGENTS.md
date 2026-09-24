@@ -17,12 +17,12 @@ multiple-choice question bank. Sprint 1 identity
 truth is `ai-workspace/MCQ-Technical-prd.md`. Phase 1 added D1 tables
 `mcqs`, `mcq_choices`, and `mcq_attempts` (binding `quizmaker`). Phase 2
 added a signed `quizmaker_session` cookie (`SESSION_SECRET` in `.dev.vars`).
-Later phases add the MCQ service, APIs, and instructor UI. Do not start
-the next phase until the user confirms the current one. Implementation is
-test-driven: write failing Vitest tests first, stop so the user can run
-`npm run test` and see **red**, implement only after they confirm, then
-stop so they can see **green**. Quote both runs in that phase's Watch log
-in the PRD.
+Phase 3 added `src/lib/services/mcqs.ts`. Later phases add the MCQ APIs and
+instructor UI. From Phase 4 on, do not pause at red or green: write tests,
+implement, and run `npm run test` yourself. Quote both runs in the PRD
+Watch log. Commit and push to `feat/mcq` at the end of each phase, then
+wait for the user to verify before starting the next phase. See
+`.cursor/rules/sprint-phases.mdc`.
 
 ## Stack
 
@@ -81,14 +81,11 @@ anything runtime-sensitive with `npm run preview`.
 - **Keep secrets out of the repo.** Local values belong in `.dev.vars`, which is
   gitignored. When adding a variable, also add an empty placeholder to
   `.dev.vars.example`. Production values go in `wrangler secret put`.
-- **Verify before claiming completion.** A phase is done only when its TDD
-  checklist is complete: tests written first and observed red, **user watched
-  red** (`npm run test`) before any implementation, implementation, `npm run
-  test` green (including earlier phases), **user watched green**, Watch log
-  quoted in the PRD, acceptance boxes checked. Then stop for confirmation.
-  Also run `npm run lint` (and `npm run build` at Phase 5) and report the
-  actual result. Do not implement while the user is still supposed to be
-  looking at a red suite.
+- **Verify at phase end, not mid-loop.** Write tests first and observe red,
+  implement, observe green (earlier phases stay green), quote both runs in
+  the PRD Watch log, tick that phase's acceptance boxes. Do **not** stop
+  for the user at red or green. Commit and push `feat/mcq` when the phase
+  is green, then wait for the user to verify before the next phase.
 - **Say when you are unsure.** A flagged uncertainty is more useful than a confident
   guess that has to be unwound later.
 

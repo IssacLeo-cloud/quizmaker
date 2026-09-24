@@ -471,7 +471,7 @@ Watch log:
 | Sprint 1 baseline | Yes | 11 files / 36 tests | Green | Yes | COMPLETED |
 | 1 MCQ migrations | **Yes** | `migrations/create_mcqs.schema.test.ts` | Green: 12 files / 37 tests | Yes | COMPLETED |
 | 2 Session cookie | **Yes** | `src/lib/session.test.ts`, updated auth route tests | Green: 13 files / 44 tests | Yes | COMPLETED |
-| 3 MCQ service | Planned | `src/lib/services/mcqs.test.ts` | — | No | PLANNED |
+| 3 MCQ service | **Yes** | `src/lib/services/mcqs.test.ts` | Green: 14 files / 53 tests | Yes | COMPLETED |
 | 4 MCQ APIs | Planned | `src/lib/validators/mcq.test.ts`, `src/app/api/mcqs/**/route.test.ts` | — | No | PLANNED |
 | 5 MCQ UI | Planned | `src/components/mcq/*.test.tsx`, updated `instructor-home.test.tsx` | — | No | PLANNED |
 | 6 Verify | Mini-loop only if a bug appears | Full suite stays green | — | No | PLANNED |
@@ -625,7 +625,7 @@ No MCQ code in this phase.
 - Login and logout routes issuing and clearing the cookie, with updated tests
 - `SESSION_SECRET` in `.dev.vars` and `.dev.vars.example`; regenerated `cloudflare-env.d.ts`
 
-### Phase 3: MCQ service layer - PLANNED
+### Phase 3: MCQ service layer - COMPLETED
 
 **Objective**: A server-only module can list, create, read, update, and delete questions with their choices, and record and list attempts — always scoped to the owning instructor.
 
@@ -656,21 +656,21 @@ Extend the in-memory fake D1 from `src/lib/services/users.test.ts:23-78` to cove
 
 **TDD completion:**
 
-- [ ] Red: listed tests written first
-- [ ] Red: `npm run test` observed failing (quote the failure in the Watch log)
-- [ ] Watch red: user ran `npm run test` and confirmed the failure; no implementation until then
-- [ ] Implement: only enough to satisfy those tests
-- [ ] Green: `npm run test` passing (this phase + earlier + Sprint 1; quote in the Watch log)
-- [ ] Watch green: user ran `npm run test` and confirmed the passing suite
-- [ ] Acceptance: this phase's criteria checked
-- [ ] Stop: PRD status updated; waiting for user confirmation before Phase 4
+- [x] Red: listed tests written first (`src/lib/services/mcqs.test.ts`)
+- [x] Red: `npm run test` observed failing (quote the failure in the Watch log)
+- [x] Watch red: user confirmed the red and asked to implement
+- [x] Implement: `src/lib/services/mcqs.ts` with ownership in SQL and `db.batch()` writes
+- [x] Green: `npm run test` passing (this phase + earlier + Sprint 1; quote in the Watch log)
+- [x] Watch green: user confirmed `14 files / 53 tests passed`
+- [x] Acceptance: this phase's criteria checked (choices persist with one correct answer; attempt correctness is server-computed; other instructor's questions are unreachable)
+- [x] Stop: PRD status updated; waiting for user confirmation before Phase 4
 
 **Watch log:**
 
 | Gate | `npm run test` result (quote) | User watched? |
 |------|-------------------------------|---------------|
-| Red (before implement) | | No — do not implement until Yes |
-| Green (after implement) | | No — not COMPLETED until Yes |
+| Red (before implement) | `Failed to resolve import "@/lib/services/mcqs"` from `src/lib/services/mcqs.test.ts`. `Test Files  1 failed \| 13 passed (14)` / `Tests  44 passed (44)` | Yes — user confirmed red |
+| Green (after implement) | `Test Files  14 passed (14)` / `Tests  53 passed (53)` | Yes — user confirmed `14 files / 53 tests passed` |
 
 **Deliverables**:
 
@@ -875,7 +875,7 @@ Write or tighten a Vitest case in the matching phase's file first. `npm run test
 | `migrations/0002_create_mcqs.sql:3-36` | `mcqs`, `mcq_choices`, `mcq_attempts` (as built) |
 | `migrations/create_mcqs.schema.test.ts:23-73` | SQL contract test for that migration (as built) |
 | `src/lib/session.ts:122-142` | Signed session cookie: create, clear, verify (as built) |
-| `src/lib/services/mcqs.ts` | The only module running SQL for the MCQ tables |
+| `src/lib/services/mcqs.ts:201-372` | The only module running SQL for the MCQ tables (as built) |
 | `src/lib/validators/mcq.ts` | Zod schemas for MCQ bodies and attempts |
 | `src/app/api/mcqs/route.ts` | `GET` list, `POST` create |
 | `src/app/api/mcqs/[id]/route.ts` | `GET`, `PUT`, `DELETE` one question |
@@ -1015,7 +1015,7 @@ Ask before adding anything to `package.json`. Specifically: no auth library, no 
 
 - [x] Local D1 has `mcqs`, `mcq_choices`, and `mcq_attempts`, created by a migration (not ad-hoc SQL)
 - [x] `mcq_choices.mcq_id` and `mcq_attempts.mcq_id` / `choice_id` cascade on delete
-- [ ] A saved question has between 2 and 6 choice rows with positions `0..n-1` and exactly one `is_correct = 1`
+- [x] A saved question has between 2 and 6 choice rows with positions `0..n-1` and exactly one `is_correct = 1`
 
 **Sessions**
 
@@ -1183,12 +1183,12 @@ Add entries here as this sprint's bugs are found and fixed.
 3. Sessions are **in scope this sprint** and are a deliberate change to Sprint 1's "no cookies" boundary. Do not extend that to JWTs, refresh tokens, or an auth library.
 4. No new npm package without asking. `zod` is installed; shadcn components are copied source and need no approval.
 5. Do not apply D1 migrations (`--local` or `--remote`). The user applies them. Write the SQL file only if a later phase needs a schema change.
-6. Never run `npm run deploy`. The user deploys. Commit and push later phases to `feat/mcq`.
+6. Never run `npm run deploy`. The user deploys. After each phase is green, commit and push to `feat/mcq`, then wait for the user to verify before the next phase.
 7. Ownership is a security boundary. Every service function takes `userId` first, filtering happens in SQL, and every route 401s without a session. Write the cross-owner test.
 8. Never trust the client for `createdBy` or an attempt's `isCorrect`. Both are derived server-side.
 9. Centralize SQL in `src/lib/services/mcqs.ts`; numbered placeholders only.
 10. Cite code as `filepath:line-number` once the implementation exists, and fill in the Key Files table with real line numbers as you go.
-11. Every phase uses the same loop: Red → **Watch red** → Implement → Green → **Watch green** → Acceptance → Stop. Fill that phase's TDD completion checklist and Watch log. After writing failing tests, stop and wait for the user to run `npm run test` and confirm red — do not implement yet. After tests pass, stop again. Do not mark COMPLETED until every box is checked, and do not start the next phase until the user confirms.
+11. From Phase 4 on, do **not** pause at Watch red or Watch green. Loop is: Red (agent runs `npm run test`) → Implement → Green (agent runs `npm run test`) → update PRD Watch log → commit and push `feat/mcq` → stop for the user to verify. Do not start the next phase until they confirm. See `.cursor/rules/sprint-phases.mdc`.
 12. Never write tests that cannot fail. Never hit real D1 from Vitest. If preview finds a bug, add a regression test (red) first, then fix (green).
 13. Update phase status, acceptance checkboxes, test file lists, and the Troubleshooting section as work happens.
 
@@ -1197,6 +1197,6 @@ Add entries here as this sprint's bugs are found and fixed.
 ## Current Status
 
 **Last Updated**: 2026-09-24
-**Current Phase**: Phase 2 COMPLETED
-**Status**: Signed `quizmaker_session` cookie is issued on login and cleared on logout. `npm run test` is `Test Files  13 passed (13)` / `Tests  44 passed (44)`. Do not apply migrations. Production still needs `npx wrangler secret put SESSION_SECRET` when the user deploys.
-**Next Steps**: Start Phase 3 (MCQ service) when the user confirms.
+**Current Phase**: Phase 3 COMPLETED
+**Status**: MCQ service is in place (`src/lib/services/mcqs.ts`). `npm run test` is `Test Files  14 passed (14)` / `Tests  53 passed (53)`. User watched green. From Phase 4 on, the agent runs red→green without pausing, then commits and pushes `feat/mcq` and waits for the user to verify.
+**Next Steps**: Start Phase 4 (MCQ API routes) when the user confirms.
