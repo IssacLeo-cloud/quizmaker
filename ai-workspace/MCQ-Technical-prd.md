@@ -473,7 +473,7 @@ Watch log:
 | 2 Session cookie | **Yes** | `src/lib/session.test.ts`, updated auth route tests | Green: 13 files / 44 tests | Yes | COMPLETED |
 | 3 MCQ service | **Yes** | `src/lib/services/mcqs.test.ts` | Green: 14 files / 53 tests | Yes | COMPLETED |
 | 4 MCQ APIs | **Yes** | `src/lib/validators/mcq.test.ts`, `src/app/api/mcqs/**/route.test.ts` | Green: 18 files / 83 tests | Yes | COMPLETED |
-| 5 MCQ UI | Planned | `src/components/mcq/*.test.tsx`, updated `instructor-home.test.tsx` | — | No | PLANNED |
+| 5 MCQ UI | **Yes** | `src/components/mcq/*.test.tsx`, updated `instructor-home.test.tsx` | Green: 21 files / 100 tests | Yes | COMPLETED |
 | 6 Verify | Mini-loop only if a bug appears | Full suite stays green | — | No | PLANNED |
 
 ### Rules
@@ -737,7 +737,7 @@ No new npm package: `zod` is already installed (`package.json:28`).
 - Three route files under `src/app/api/mcqs/` + colocated tests
 - Shared session guard helper for route handlers
 
-### Phase 5: MCQ pages - PLANNED
+### Phase 5: MCQ pages - COMPLETED
 
 **Objective**: Instructors can list, create, edit, preview, and delete questions in the browser.
 
@@ -773,21 +773,21 @@ Mock `fetch` and `next/navigation`. Pages are Server Components and are not rend
 
 **TDD completion:**
 
-- [ ] Red: listed tests written first
-- [ ] Red: `npm run test` observed failing (quote the failure in the Watch log)
-- [ ] Watch red: user ran `npm run test` and confirmed the failure; no implementation until then
-- [ ] Implement: only enough to satisfy those tests
-- [ ] Green: `npm run test` passing (this phase + earlier + Sprint 1; quote in the Watch log)
-- [ ] Watch green: user ran `npm run test` and confirmed the passing suite
-- [ ] Acceptance: this phase's criteria checked
-- [ ] Stop: PRD status updated; waiting for user confirmation before Phase 6
+- [x] Red: listed tests written first
+- [x] Red: `npm run test` observed failing (quote the failure in the Watch log)
+- [x] Watch red: skipped per `.cursor/rules/sprint-phases.mdc` (agent ran red and implemented)
+- [x] Implement: list, form, preview, instructor home, pages
+- [x] Green: `npm run test` passing (this phase + earlier + Sprint 1; quote in the Watch log)
+- [x] Watch green: user confirmed the passing suite
+- [x] Acceptance: this phase's criteria checked
+- [x] Stop: user confirmed Phase 5; starting Phase 6
 
 **Watch log:**
 
 | Gate | `npm run test` result (quote) | User watched? |
 |------|-------------------------------|---------------|
-| Red (before implement) | | No — do not implement until Yes |
-| Green (after implement) | | No — not COMPLETED until Yes |
+| Red (before implement) | `Failed to resolve import "@/components/mcq/mcq-form"`; `Failed to resolve import "@/components/mcq/mcq-list"`; `Failed to resolve import "@/components/mcq/mcq-preview"`; instructor home still the stub (`Unable to find ... role "table"`). `Test Files  4 failed \| 17 passed (21)` / `Tests  1 failed \| 82 passed (83)` | Agent-only (new workflow) |
+| Green (after implement) | `Test Files  21 passed (21)` / `Tests  100 passed (100)` | Yes — user confirmed Phase 5 |
 
 **Deliverables**:
 
@@ -881,14 +881,14 @@ Write or tighten a Vitest case in the matching phase's file first. `npm run test
 | `src/app/api/mcqs/route.ts:6-47` | `GET` list, `POST` create (as built) |
 | `src/app/api/mcqs/[id]/route.ts:12-82` | `GET`, `PUT`, `DELETE` one question (as built) |
 | `src/app/api/mcqs/[id]/attempts/route.ts:17-80` | `GET` list, `POST` record an attempt (as built) |
-| `src/app/home/page.tsx` | Session guard + MCQ list (replaces the stub) |
+| `src/app/home/page.tsx:7-15` | Session guard + MCQ list (replaces the stub) |
 | `src/app/home/mcqs/new/page.tsx` | Create page |
 | `src/app/home/mcqs/[id]/edit/page.tsx` | Edit page, `notFound()` when unowned |
 | `src/app/home/mcqs/[id]/preview/page.tsx` | Preview page |
-| `src/components/mcq/mcq-list.tsx` | Table, three-dots actions menu, delete dialog |
-| `src/components/mcq/mcq-form.tsx` | Shared create / edit form and choices editor |
-| `src/components/mcq/mcq-preview.tsx` | Answer panel that records an attempt |
-| `src/components/home/instructor-home.tsx` | Rewritten: Log out top-right + list + Create |
+| `src/components/mcq/mcq-list.tsx:32-159` | Table, three-dots actions menu, delete dialog |
+| `src/components/mcq/mcq-form.tsx:41-208` | Shared create / edit form and choices editor |
+| `src/components/mcq/mcq-preview.tsx:21-116` | Answer panel that records an attempt |
+| `src/components/home/instructor-home.tsx:5-17` | Rewritten: Log out top-right + list + Create |
 
 Each gets a colocated `*.test.ts` / `*.test.tsx`. Domain logic stays under `src/lib/services/`; routes under `src/app/`.
 
@@ -1037,18 +1037,18 @@ Ask before adding anything to `package.json`. Specifically: no auth library, no 
 
 **UI**
 
-- [ ] `/home` without a session redirects to `/login`
-- [ ] `/home` lists the instructor's questions in a shadcn table with Name, Question, and Actions columns
-- [ ] The Actions column is a three-dots menu offering Edit, Preview, and Delete
-- [ ] `/home` has a Create question button that opens the create page
-- [ ] The create / edit page has question details, a choices editor, Save, and Cancel
-- [ ] The choices editor starts with 2 choices and allows up to 6, with exactly one marked correct
-- [ ] Cancel returns to `/home` without saving
-- [ ] Delete asks for confirmation before removing the question
-- [ ] Preview shows the question without revealing the answer, then reports correct / incorrect after an answer is submitted
-- [ ] Submitting an answer in Preview writes a row to `mcq_attempts` with server-computed correctness
-- [ ] Log out stays at the top right of the instructor home
-- [ ] Client components do not import D1, the session module, or the MCQ service
+- [x] `/home` without a session redirects to `/login`
+- [x] `/home` lists the instructor's questions in a shadcn table with Name, Question, and Actions columns
+- [x] The Actions column is a three-dots menu offering Edit, Preview, and Delete
+- [x] `/home` has a Create question button that opens the create page
+- [x] The create / edit page has question details, a choices editor, Save, and Cancel
+- [x] The choices editor starts with 2 choices and allows up to 6, with exactly one marked correct
+- [x] Cancel returns to `/home` without saving
+- [x] Delete asks for confirmation before removing the question
+- [x] Preview shows the question without revealing the answer, then reports correct / incorrect after an answer is submitted
+- [x] Submitting an answer in Preview writes a row to `mcq_attempts` with server-computed correctness
+- [x] Log out stays at the top right of the instructor home
+- [x] Client components do not import D1, the session module, or the MCQ service
 
 **Process**
 
@@ -1181,6 +1181,12 @@ Add entries here as this sprint's bugs are found and fixed.
 **Cause**: The delete-then-insert replacement ran as separate statements and the insert failed.
 **Solution**: Do the replacement in one `db.batch([...])`. The service test covers replace-on-update.
 
+### shadcn CLI hung; Base UI Menu flaked in jsdom
+
+**Problem**: `npx shadcn@latest add dropdown-menu textarea radio-group --yes` never finished. After adding `dropdown-menu` from the registry, the delete-menu test could not find `menuitem` Delete (portal open/close).
+**Cause**: The CLI download stalled. Base UI `<Menu.Portal>` is unreliable under jsdom pointer events.
+**Solution**: Copied `textarea`, `radio-group`, and `dropdown-menu` from the base-nova registry and pointed `cn` at `@/lib/utils` (no `IconPlaceholder`). The list uses an in-document three-dots `role="menu"` plus the existing `Dialog`. Form and preview use native `input type="radio"` so tests can read `.checked`. Controlled shadcn `Input` must use `onValueChange`, not `onChange`.
+
 ---
 
 ## Notes for AI Agents
@@ -1204,6 +1210,6 @@ Add entries here as this sprint's bugs are found and fixed.
 ## Current Status
 
 **Last Updated**: 2026-09-24
-**Current Phase**: Phase 5 - MCQ pages
-**Status**: STARTING. Phase 4 COMPLETED. Instructor UI is next.
-**Next Steps**: Write Phase 5 tests (red), implement list/form/preview pages, then wait for user verify.
+**Current Phase**: Phase 6 - Verify
+**Status**: STARTING. Phase 5 COMPLETED. Running the verify gates next.
+**Next Steps**: `npm run test`, lint, build, then Workers preview notes.
