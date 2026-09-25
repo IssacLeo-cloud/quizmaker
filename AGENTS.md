@@ -18,12 +18,13 @@ truth is `ai-workspace/MCQ-Technical-prd.md`. Phase 1 added D1 tables
 `mcqs`, `mcq_choices`, and `mcq_attempts` (binding `quizmaker`). Phase 2
 added a signed `quizmaker_session` cookie (`SESSION_SECRET` in `.dev.vars`).
 Phase 3 added `src/lib/services/mcqs.ts`. Phase 4 added session-guarded
-`/api/mcqs` routes. Phase 5 added the instructor list, create, edit, and preview UI. Phase 6 is verify. From Phase 4 on, do not pause at red or green: write tests,
-implement, and run `npm run test` yourself. Quote both runs in the PRD
-Watch log. Do not commit when a phase goes green. Wait for the user to
-verify. When they confirm the phase is correct and ask to start the next
-one, commit the completed phase first, then start. See
-`.cursor/rules/sprint-phases.mdc`.
+`/api/mcqs` routes. Phase 5 added the instructor list, create, edit, and preview UI. Sprint 2
+Phase 6 verify is complete and the worker is deployed. From Phase 4 on, do
+not pause at red or green: write tests, implement, and run `npm run test`
+yourself. Quote both runs in the PRD Watch log. Do not commit when a
+phase goes green. Wait for the user to verify. When they confirm the
+phase is correct and ask to start the next one, commit the completed
+phase first, then start. See `.cursor/rules/sprint-phases.mdc`.
 
 ## Stack
 
